@@ -1,0 +1,18 @@
+<ProjectsScreen>:
+    FloatLayout:
+        canvas:
+            Color:
+                rgb: utils.get_color_from_hex("#3983F2")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": .9, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                app.change_screen('home_screen')
+        Label:
+            text: "This is your Projects"
+            size_hint: 1, .1
+            pos_hint: {"top": 1, "left": 1}

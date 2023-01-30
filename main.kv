@@ -1,0 +1,61 @@
+#:include kv/calendar_screen.kv
+#:include kv/home_screen.kv
+#:include kv/settings_screen.kv
+#:include kv/events_screen.kv
+#:include kv/todolist_screen.kv
+#:include kv/projects_screen.kv
+#:include kv/login_screen.kv
+
+GridLayout:
+    cols: 1
+    FloatLayout:
+        GridLayout:
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            rows: 1
+            cols: 3
+            pos_hint: {"top": 1, "left": 1}
+            size_hint: 1, 0.15
+            Button:
+                text: "Home"
+                on_release:
+                    app.change_screen('home_screen')
+            Image:
+                source: "icons/logo.png"
+            ImageButton:
+                source: "icons/settings.png"
+                on_release:
+                    app.change_screen('settings_screen')
+        ScreenManager:
+            size_hint: 1, 0.8
+            pos_hint: {"top": .8, "left": 1}
+            id: screen_manager
+            LoginScreen:
+                name: "login_screen"
+                id: login_screen
+            HomeScreen:
+                name: "home_screen"
+                id: home_screen
+            SettingsScreen:
+                name: "settings_screen"
+                id: settings_screen
+            CalendarScreen:
+                name: "calendar_screen"
+                id: calendar_screen
+            EventsScreen:
+                name: "events_screen"
+                id: events_screen
+            TodolistScreen:
+                name: "todolist_screen"
+                id: todolist_screen
+            ProjectsScreen:
+                name: "projects_screen"
+                id: projects_screen
+
+
+
+

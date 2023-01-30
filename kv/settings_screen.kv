@@ -1,0 +1,39 @@
+<SettingsScreen>:
+    FloatLayout:
+        canvas:
+            Color:
+                rgb: utils.get_color_from_hex("#3983F2")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": .9, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                app.change_screen('home_screen')
+        Label:
+            id: friend_id_label
+            text: "This is settings"
+            size_hint: 1, .1
+            pos_hint: {"top": 1, "left": 1}
+        ImageButton:
+            size_hint: .5, .2
+            pos_hint: {"top": .7, "left": 1}
+            source: "icons/settings.png"
+            on_release:
+                print("Setting_1")
+        ImageButton:
+            size_hint: .5, .2
+            pos_hint: {"top": .7, "right": 1}
+            source: "icons/settings.png"
+            on_release:
+                print("Setting_2")
+        LabelButton:
+            size_hint: .5, .2
+            pos_hint: {"top": .5, "left": 1}
+            text: "Some command"
+            on_release:
+                print("Some command")
+
+
