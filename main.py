@@ -5,7 +5,7 @@ from kivy.app import App
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDDatePicker
 from kivy.lang import Builder
-from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.uix.label import Label
@@ -58,15 +58,21 @@ class MainApp(MDApp):
         Builder.load_file("main.kv")
 
     def on_start(self):
-        result = requests.get('https://zach-mobile-default-rtdb.firebaseio.com/Zach/Users' + str(self.user_id) + '.json')
-        data = json.loads(result.content.decode())
 
-        # # for name in data.keys():
-        # #     print(name)
-        # events = data['Stas']['events']
-        # for event in events:
-        #     print(events[event]['name'])
-        #     print(events[event]['date'])
+        try:
+            with open('refresh_token.txt', 'r') as f:
+                refresh_token = f.read()
+
+            id_token, local_id = self.my_base.exchange_refresh_token(refresh_token)
+
+            result = requests.get('https://zach-mobile-default-rtdb.firebaseio.com/Users' + local_id + '.json?auth=' + id_token)
+            data = json.loads(result.content.decode())
+            self.root.ids['screen_manager'].transition = NoTransition
+            self.change_screen('home_screen')
+            self.root.ids['screen_manager'].transition = CardTransition
+
+        except Exception:
+            pass
 
     def change_screen(self, screen_name):
         screen_manager = self.root.ids["screen_manager"]
