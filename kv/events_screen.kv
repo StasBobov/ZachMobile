@@ -12,6 +12,12 @@
             source: "icons/back.png"
             on_release:
                 app.change_screen('home_screen')
+        ImageButton:
+            size_hint: .2, .25
+            pos_hint: {"top": .7, "right": .25}
+            source: "icons/add_event.png"
+            on_release:
+                app.change_screen('calendar_screen')
         Label:
             text: "This is your events"
             size_hint: 1, .1

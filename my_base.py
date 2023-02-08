@@ -13,8 +13,8 @@ class MyBase:
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + self.wak
         signup_payload = {"email": email, "password": password, "returnSecureToken": True}
         sign_up_request = requests.post(signup_url, data=signup_payload)
-        print(sign_up_request.ok)
-        print(sign_up_request.content.decode())
+        # print(sign_up_request.ok)
+        # print(sign_up_request.content.decode())
         sign_up_data = json.loads(sign_up_request.content.decode())
 
         if sign_up_request.ok:
@@ -27,13 +27,13 @@ class MyBase:
             app.local_id = localId # uid
             app.id_token = idToken
 
-            my_data = '{"name": "", "lname": "", "email": ""}'
+            my_data = '{"name": "", "lname": "", "email": "", "events": ""}'
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
-            print(post_request.ok)
-            print(json.loads((post_request.content.decode())))
+            # print(post_request.ok)
+            # print(json.loads((post_request.content.decode())))
 
-        #     app.change_screen('home_screen')
+            app.change_screen('home_screen')
 
             # показываем текст ошибки в лэйбле, если данные введены неверно
         if not sign_up_request.ok:
@@ -43,10 +43,10 @@ class MyBase:
 
     def exchange_refresh_token(self, refresh_token):
         refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
-        refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}"% refresh_token
+        refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}" % refresh_token
         refresh_req = requests.post(refresh_url, data=refresh_payload)
-        print('Refresh ok', refresh_req.ok)
-        pprint(refresh_req.json())
+        # print('Refresh ok', refresh_req.ok)
+        # pprint(refresh_req.json())
 
         local_id = refresh_req.json()['user_id']
         id_token = refresh_req.json()['id_token']

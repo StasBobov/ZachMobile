@@ -1,6 +1,5 @@
 from pprint import pprint
 from my_base import MyBase
-
 from kivy.app import App
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDDatePicker
@@ -9,8 +8,13 @@ from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 import requests
 import json
+
+
+class CalendarKivy(Screen):
+    pass
 
 
 class HomeScreen(Screen):
@@ -49,11 +53,21 @@ class LoginScreen(Screen):
     pass
 
 
+class AddTaskScreen(Screen):
+    pass
+
+
 class MainApp(MDApp):
     user_id = 1
 
-    def build(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.date = AKDatePicker(callback=self.callback)
 
+    def callback(self, date):
+        pprint(date.month)
+
+    def build(self):
         self.my_base = MyBase()
         Builder.load_file("main.kv")
 
@@ -65,11 +79,12 @@ class MainApp(MDApp):
 
             id_token, local_id = self.my_base.exchange_refresh_token(refresh_token)
 
-            result = requests.get('https://zach-mobile-default-rtdb.firebaseio.com/Users' + local_id + '.json?auth=' + id_token)
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + local_id + '.json?auth=' + id_token)
             data = json.loads(result.content.decode())
-            self.root.ids['screen_manager'].transition = NoTransition
+            self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
-            self.root.ids['screen_manager'].transition = CardTransition
+            self.root.ids['screen_manager'].transition = CardTransition()
 
         except Exception:
             pass
@@ -77,6 +92,9 @@ class MainApp(MDApp):
     def change_screen(self, screen_name):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
+
+    def open_calendar(self):
+        self.date.open()
 
     def show_date_picker(self):
         # можно поставить любую конкретную даты в скобках
