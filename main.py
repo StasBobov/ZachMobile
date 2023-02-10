@@ -19,6 +19,14 @@ import datetime
 import requests
 import json
 
+# TODO
+# Active/Inactive
+# Обновление экрана с эвентами
+# Активизировать кнопки в эвентах
+# Отображать на календаре дни с эвентами
+# По щелчку на день отображать эвенты на этот день
+
+
 
 class EventCalendarScreen(Screen):
     days = []
@@ -92,7 +100,6 @@ def start_calendar_fill(app):
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
-        # days[n + week_day]['fg'] = 'black' #TODO
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
             # красим сегодняшний день в зеленый
@@ -141,17 +148,17 @@ class MainApp(MDApp):
             with open('refresh_token.txt', 'r') as f:
                 refresh_token = f.read()
 
-            id_token, local_id = self.my_base.exchange_refresh_token(refresh_token)
+            self.id_token, self.local_id = self.my_base.exchange_refresh_token(refresh_token)
 
             result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + local_id + '.json?auth=' + id_token)
-            data = json.loads(result.content.decode())
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
+            self.data = json.loads(result.content.decode())
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
 
             # заполняем эвенты TODO нужно ли это здесь?
-            self.events_filling(data)
+            self.events_filling(self.data)
 
             start_calendar_fill(self)
 
@@ -164,22 +171,17 @@ class MainApp(MDApp):
 
 # ___________________________________Event calendar________________________________________________________________________
 
-    # def update_rect(self, event, *args):
-    #     event.rect.pos = event.pos
-    #     event.rect.size = event.size
-
     # заполняет экран эвентов
     def events_filling(self, data):
         # BoxLayout в events_screen
         events_box_layout = self.root.ids['events_screen'].ids['events_layout']
-        events = data['events'][1:]
+        events = data['events']
+        events_keys = events.keys()
 
-        for event in events:
+        for event_key in events_keys:
+            # проходим по всем эвентам и их полям через ключ эвента
+            event = events[event_key]
             layout_for_event = FloatLayout()
-            # with layout_for_event.canvas.before:
-            #     Color(rgb=(kivy.utils.get_color_from_hex('#696969')))
-            #     layout_for_event.rect = Rectangle(size=layout_for_event.size, pos=layout_for_event.pos)
-            # layout_for_event.bind(pos=self.update_rect(layout_for_event), size=self.update_rect(layout_for_event))
             title = Label(text=event['title'], size_hint=(.8, .3),
                           pos_hint={"top": 1, "left": .5})
             description = Label(text=event['description'], size_hint=(.8, .4),
@@ -252,7 +254,7 @@ class MainApp(MDApp):
                                                                                     f" {EventCalendarScreen.year}"
 
 
-    def save_new_event(self, time):
+    def save_new_event(self):
         title = self.root.ids["new_event_screen"].ids["title"].text
         description = self.root.ids["new_event_screen"].ids["description"].text
         time = self.root.ids["new_event_screen"].ids["chosen_time"].text
@@ -267,14 +269,19 @@ class MainApp(MDApp):
         elif time == 'time':
             self.root.ids["new_event_screen"].ids["info_label"].text = "Please chose the time"
         else:
-            # TODO в каком виде собрать информацию и как её отправлять?
+            # Отправляем данные в firebase
+            event_data_for_load = {'title': title, 'description': description, 'time': time, 'date': date,  'status': 'active'}
+            # requests.post присваивает запросу ключ
+            new_event_request = requests.post('https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
+                                              %(self.local_id, self.id_token), data=json.dumps(event_data_for_load))
+
             self.root.ids["new_event_screen"].ids["info_label"].text = ''
             self.root.ids["new_event_screen"].ids["title"].text = ''
             self.root.ids["new_event_screen"].ids["description"].text = ''
             self.root.ids["new_event_screen"].ids["chosen_time"].text = 'time'
             self.root.ids["new_event_screen"].ids["chosen_date"].text = 'date'
-            print(time)
             self.change_screen("events_screen")
+            self.events_filling(self.data)
 
 # ___________________________________Time picker________________________________________________________________________
 

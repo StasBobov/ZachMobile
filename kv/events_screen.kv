@@ -40,14 +40,16 @@
                 pos_hint: {"top": 1, "left": 1}
         ScrollView:
             pos_hint: {"top": .7, "right": 1}
-            size_hint: 1, 1
+            size_hint: 1, .7
+            do_scroll_y: True
+            do_scroll_x: False
             GridLayout:
                 id: events_layout
                 name: "events_layout"
                 cols: 1
                 size_hint_y: None
                 height: self.minimum_height
-                row_default_height: '100dp'
+                row_default_height: '120dp'
                 row_fource_default: True
                 canvas:
                     Color:

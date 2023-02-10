@@ -30,7 +30,7 @@
             id: info_label
             name: "info_label"
             size_hint: .8, .1
-            pos_hint: {'top': .4, 'right': .9}
+            pos_hint: {'top': .3, 'right': .9}
         LabelButton:
             id: chosen_date
             canvas.before:
@@ -42,7 +42,7 @@
             text: 'date'
             markup: True
             size_hint: .4, .1
-            pos_hint: {'top': .3, 'right': .5}
+            pos_hint: {'top': .2, 'right': .5}
             on_release:
                 app.change_screen('event_calendar_screen')
                 app.previous_screen = "new_event_screen"
@@ -57,19 +57,19 @@
             text: 'time'
             markup: True
             size_hint: .4, .1
-            pos_hint: {'top': .3, 'right': .9}
+            pos_hint: {'top': .2, 'right': .9}
             on_release:
                 app.show_time_picker()
                 app.previous_screen = "new_event_screen"
         ImageButton:
             size_hint: .2, .15
-            pos_hint: {"top": .15, "right": .9}
+            pos_hint: {"top": .1, "right": .9}
             source: "icons/save.png"
             on_release:
                 app.save_new_event()
         ImageButton:
             size_hint: .2, .15
-            pos_hint: {"top": .15, "right": .5}
+            pos_hint: {"top": .1, "right": .5}
             source: "icons/clear.png"
             on_release:
                 app.change_screen("events_screen")
