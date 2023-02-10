@@ -23,6 +23,7 @@ def next():
     fill()
 
 
+
 def fill():
     # инфо табло/calendar.month_name[month] - текущий месяц  + текущий год
     info_label['text'] = calendar.month_name[month] + ', ' + str(year)

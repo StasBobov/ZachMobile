@@ -1,0 +1,173 @@
+<Button>
+    size_hint: (0.2, 0.2)
+    background_color: (2/255, 10/255, 24/255, 1)
+
+<EventCalendarScreen>:
+    BoxLayout
+        orientation: "vertical"
+        size_hint: 1, 1
+        TextInput:
+            id: month
+            text: ""
+            font_size: 20
+            multiline: False
+            halign: "center"
+            size_hint: (1, .15)
+            background_color: (20/255, 20/255, 30/255, 1)
+            foreground_color: (1, 1, 1, 1)
+
+        GridLayout:
+            cols: 7
+            rows: 7
+            ### row 1 ###
+            Button:
+                text: 'Mon'
+                on_release:
+                    root.fill()
+            Button:
+                text: 'Tue'
+            Button:
+                text: 'Wed'
+            Button:
+                text: 'Thu'
+            Button:
+                text: 'Fri'
+            Button:
+                text: 'Sat'
+            Button:
+                text: 'Sun'
+
+            ### row 2 ###
+            Button:
+                id: 0
+                text: '%'
+            Button:
+                id: 1
+                text: '%'
+                on_release:
+                    root.change()
+            Button:
+                id: 2
+                text: '%'
+            Button:
+                text: '%'
+                id: 3
+            Button:
+                text: '%'
+                id: 4
+            Button:
+                text: '%'
+                id: 5
+            Button:
+                text: '%'
+                id: 6
+            ### row 3 ###
+            Button:
+                text: '%'
+                id: 7
+            Button:
+                text: '%'
+                id: 8
+            Button:
+                text: '%'
+                id: 9
+            Button:
+                text: '%'
+                id: 10
+            Button:
+                text: '%'
+                id: 11
+            Button:
+                text: '%'
+                id: 12
+            Button:
+                text: '%'
+                id: 13
+            ### row 4 ###
+            Button:
+                text: '%'
+                id: 14
+            Button:
+                text: '%'
+                id: 15
+            Button:
+                text: '%'
+                id: 16
+            Button:
+                text: '%'
+                id: 17
+            Button:
+                text: '%'
+                id: 18
+            Button:
+                text: '%'
+                id: 19
+            Button:
+                text: '%'
+                id: 20
+            ### row 5 ###
+            Button:
+                text: '%'
+                id: 21
+            Button:
+                text: '%'
+                id: 22
+            Button:
+                text: '%'
+                id: 23
+            Button:
+                text: '%'
+                id: 24
+            Button:
+                text: '%'
+                id: 25
+            Button:
+                text: '%'
+                id: 26
+            Button:
+                text: '%'
+                id: 27
+            ### row 6 ###
+            Button:
+                text: '%'
+                id: 28
+            Button:
+                text: '%'
+                id: 29
+            Button:
+                text: '%'
+                id: 30
+            Button:
+                text: '%'
+                id: 31
+            Button:
+                text: '%'
+                id: 32
+            Button:
+                text: '%'
+                id: 33
+            Button:
+                text: '%'
+                id: 34
+            ### row 7 ###
+            Button:
+                text: '%'
+                id: 35
+            Button:
+                text: '%'
+                id: 36
+            Button:
+                text: '%'
+                id: 37
+            Button:
+                text: '%'
+                id: 38
+            Button:
+                text: '%'
+                id: 39
+            Button:
+                text: '%'
+                id: 40
+            Button:
+                text: '%'
+                id: 41

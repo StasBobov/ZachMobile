@@ -6,7 +6,8 @@
 #:include kv/projects_screen.kv
 #:include kv/login_screen.kv
 #:include kv/add_task_screen.kv
-#:include kv/calendar_kivy.kv
+#:include kv/event_calendar_screen.kv
+
 
 GridLayout:
     cols: 1
@@ -57,9 +58,10 @@ GridLayout:
             ProjectsScreen:
                 name: "projects_screen"
                 id: projects_screen
-            CalendarKivy:
-                name: "calendar_kivy"
-                id: calendar_kivy
+            EventCalendarScreen:
+                name: "event_calendar_screen"
+                id: event_calendar_screen
+
 
 
 
