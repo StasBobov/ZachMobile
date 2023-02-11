@@ -10,11 +10,13 @@
             ImageButton:
                 source: "icons/calendar.jpg"
                 on_release:
-                    app.change_screen('calendar_screen')
+                    app.change_screen('event_calendar_screen')
+                    app.previous_screen = "home_screen"
             ImageButton:
                 source: "icons/events.jpg"
                 on_release:
                     app.change_screen('events_screen')
+                    app.previous_screen = "home_screen"
         GridLayout:
             rows: 1
             cols: 2
@@ -24,7 +26,9 @@
                 source: "icons/todolist.png"
                 on_release:
                     app.change_screen('todolist_screen')
+                    app.previous_screen = "home_screen"
             ImageButton:
                 source: "icons/projects.jpg"
                 on_release:
                     app.change_screen('projects_screen')
+                    app.previous_screen = "home_screen"

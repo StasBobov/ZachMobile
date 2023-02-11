@@ -7,6 +7,7 @@
 #:include kv/login_screen.kv
 #:include kv/add_task_screen.kv
 #:include kv/event_calendar_screen.kv
+#:include kv/new_event_screen.kv
 
 
 GridLayout:
@@ -61,6 +62,12 @@ GridLayout:
             EventCalendarScreen:
                 name: "event_calendar_screen"
                 id: event_calendar_screen
+            NewEventScreen:
+                name: "new_event_screen"
+                id: new_event_screen
+            AddTaskScreen:
+                name: "add_task_screen"
+                id: add_task_screen
 
 
 

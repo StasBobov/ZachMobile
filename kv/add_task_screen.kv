@@ -10,7 +10,8 @@
         pos_hint: {"top": .9, "right": .25}
         source: "icons/back.png"
         on_release:
-            app.change_screen('home_screen')
+            app.change_screen(app.previous_screen)
+            app.previous_screen = "add_task_screen"
     Label:
         text: "What should you do?"
         size_hint: 1, .1

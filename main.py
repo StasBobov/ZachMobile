@@ -21,14 +21,9 @@ class EventCalendarScreen(Screen):
     year = now.year
     month = now.month
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
-        # for row in range(6):
-        #     for col in range(7):
-        #         _date = '0'
-        #         # заполнили словарь объектами с текстом 0
-        #         self.days.append(_date)
+class NewEventScreen(Screen):
+    pass
 
 
 class HomeScreen(Screen):
@@ -77,11 +72,6 @@ def start_calendar_fill(app):
                                                                ', ' + str(EventCalendarScreen.year)
     for num in range(42):
         EventCalendarScreen.days.append(num)
-    # for row in range(6):
-    #     for col in range(7):
-    #         _date = '0'
-    #         # заполнили список объектами с текстом 0
-    #         EventCalendarScreen.days.append(_date)
     # calendar.monthrange(year, month)[1] - дней в текущем месяце текущего года
     month_days = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[1]
     # если январь
@@ -93,24 +83,40 @@ def start_calendar_fill(app):
         back_month_days = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month - 1)[1]
     # первый день месяца (понедельник - 0)
     week_day = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[0]
-
     # n - дни текущего месяца текущего года с 0
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
-        # days[n + week_day]['text'] = n + 1
-        # days[n + week_day]['fg'] = 'black'
-        # if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
-        #         EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
-        #     # красим сегодняшний день в зеленый
-        #     days[now.day + week_day - 1]['bg'] = 'green'
+        # days[n + week_day]['fg'] = 'black' #TODO
+        if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
+                EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
+            # красим сегодняшний день в зеленый
+            app.root.ids["event_calendar_screen"].ids[str(EventCalendarScreen.now.day + week_day - 1)].background_color = \
+                (7/255, 222/255, 67/255, 1)
         #     # остальные дни - серым
-        #     days[n + week_day]['bg'] = 'grey'
-        # else:
-        #     days[n + week_day]['bg'] = 'grey'
+            app.root.ids["event_calendar_screen"].ids[str(n + week_day)].background_color = \
+            (99/255, 97/255, 97/255, 1)
+        else:
+            app.root.ids["event_calendar_screen"].ids[str(n + week_day)].background_color = \
+            (99/255, 97/255, 97/255, 1)
+
+
+    # заполняем дни предыдущего месяца
+    for n in range(week_day):
+        app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].text = str(back_month_days - n)
+        app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].background_color = \
+            (193/ 255, 198/ 255, 198/ 255, 1)
+        # days[week_day - n - 1]['fg'] = 'gray'
+    # заполняем дни следующего месяца
+    for n in range(6 * 7 - month_days - week_day):
+        app.root.ids["event_calendar_screen"].ids[str(week_day + month_days + n)].text = str(n + 1)
+        app.root.ids["event_calendar_screen"].ids[str(week_day + month_days + n)].background_color = \
+            (193/ 255, 198/ 255, 198/ 255, 1)
+        # days[week_day + month_days + n]['fg'] = 'gray'
 
 
 class MainApp(MDApp):
+    previous_screen = 'home_screen'
     user_id = 1
 
     def __init__(self, **kwargs):
@@ -120,12 +126,59 @@ class MainApp(MDApp):
     def callback(self, date):
         pass
 
+    def month_back(self):
+        EventCalendarScreen.month -= 1
+        if EventCalendarScreen.month == 0:
+            EventCalendarScreen.month = 12
+            EventCalendarScreen.year -= 1
+        start_calendar_fill(self)
+
+    def month_next(self):
+        EventCalendarScreen.month += 1
+        if EventCalendarScreen.month == 13:
+            EventCalendarScreen.month = 1
+            EventCalendarScreen.year += 1
+        start_calendar_fill(self)
+
+    # после нажатия на дату отправляет на предыдущий экран
+    def calendar_button_release(self, day, name):
+        current_month = EventCalendarScreen.month
+        # дни текущего месяца текущего года
+        month_days = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[1]
+        # первый день месяца (понедельник - 0)
+        week_day = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[0]
+        # если нажал на день предыдущего месяца
+        if int(name) < week_day:
+            # месяц считается предыдущим
+            current_month -= 1
+            # если переходили из создания нового эвента
+        elif int(name) >= week_day + month_days:
+            current_month += 1
+
+        if self.previous_screen == "new_event_screen":
+            # проверяем, чтобы дата была не меньше текущей
+            if EventCalendarScreen.year > EventCalendarScreen.now.year:
+                self.change_screen(self.previous_screen)
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day}/{current_month}/"\
+                                                                            f"{EventCalendarScreen.year}"
+            elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month > \
+                    EventCalendarScreen.now.month:
+                self.change_screen(self.previous_screen)
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day}/{current_month}/"\
+                                                                            f"{EventCalendarScreen.year}"
+            elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month >= \
+                    EventCalendarScreen.now.month and int(day) >= EventCalendarScreen.now.day:
+                        self.change_screen(self.previous_screen)
+                        self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day} / {current_month} /" \
+                                                                                    f" {EventCalendarScreen.year}"
+
+
     def build(self):
+        self.theme_cls.theme_style = 'Light'
         self.my_base = MyBase()
         Builder.load_file("main.kv")
 
     def on_start(self):
-        print(self.root.ids["event_calendar_screen"].ids["month"].text)
 
         try:
             with open('refresh_token.txt', 'r') as f:

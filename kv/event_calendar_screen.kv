@@ -1,20 +1,40 @@
 <Button>
     size_hint: (0.2, 0.2)
-    background_color: (2/255, 10/255, 24/255, 1)
+
 
 <EventCalendarScreen>:
-    BoxLayout
+    BoxLayout:
         orientation: "vertical"
         size_hint: 1, 1
-        TextInput:
-            id: month
-            text: ""
-            font_size: 20
-            multiline: False
-            halign: "center"
-            size_hint: (1, .15)
-            background_color: (20/255, 20/255, 30/255, 1)
-            foreground_color: (1, 1, 1, 1)
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint: 1, .15
+            ImageButton:
+                size_hint: .15, 1
+                pos_hint: {"top": 1, "right": .25}
+                source: "icons/back.png"
+                on_release:
+                    app.change_screen(app.previous_screen)
+                    app.previous_screen = "event_calendar_screen"
+            ImageButton:
+                size_hint: .25, 1
+                source: "icons/cal_back.png"
+                on_release:
+                    app.month_back()
+            TextInput:
+                id: month
+                text: ""
+                font_size: 20
+                multiline: False
+                halign: "center"
+                size_hint: (.35, 1)
+                background_color: (20/255, 20/255, 30/255, 1)
+                foreground_color: (1, 1, 1, 1)
+            ImageButton:
+                size_hint: .25, 1
+                source: "icons/cal_next.png"
+                on_release:
+                    app.month_next()
 
         GridLayout:
             cols: 7
@@ -22,8 +42,6 @@
             ### row 1 ###
             Button:
                 text: 'Mon'
-                on_release:
-                    root.fill()
             Button:
                 text: 'Tue'
             Button:
@@ -41,133 +59,250 @@
             Button:
                 id: 0
                 text: '%'
+                name: "0"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 id: 1
+                name: "1"
                 text: '%'
                 on_release:
-                    root.change()
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 id: 2
+                name: "2"
                 text: '%'
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 3
+                name: "3"
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 4
+                name: "4"
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 5
+                name: "5"
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 6
+                name: "6"
+                    app.calendar_button_release(self.text, self.name)
             ### row 3 ###
             Button:
                 text: '%'
                 id: 7
+                name: "7"
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 8
+                name: "8"
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 9
+                name: "9"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 10
+                name: "10"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 11
+                name: "11"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 12
+                name: "12"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 13
+                name: "13"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             ### row 4 ###
             Button:
                 text: '%'
                 id: 14
+                name: "14"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 15
+                name: "15"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 16
+                name: "16"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 17
+                name: "17"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 18
+                name: "18"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 19
+                name: "19"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 20
+                name: "20"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             ### row 5 ###
             Button:
                 text: '%'
                 id: 21
+                name: "21"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 22
+                name: "22"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 23
+                name: "23"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 24
+                name: "24"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 25
+                name: "25"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 26
+                name: "26"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 27
+                name: "27"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             ### row 6 ###
             Button:
                 text: '%'
                 id: 28
+                name: "28"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 29
+                name: "29"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 30
+                name: "30"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 31
+                name: "31"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 32
+                name: "32"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 33
+                name: "33"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 34
+                name: "34"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             ### row 7 ###
             Button:
                 text: '%'
                 id: 35
+                name: "35"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 36
+                name: "36"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 37
+                name: "37"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 38
+                name: "38"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 39
+                name: "39"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 40
+                name: "40"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)
             Button:
                 text: '%'
                 id: 41
+                name: "41"
+                on_release:
+                    app.calendar_button_release(self.text, self.name)

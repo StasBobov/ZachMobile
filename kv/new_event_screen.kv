@@ -1,0 +1,41 @@
+<NewEventScreen>:
+    canvas:
+        Color:
+            rgb: utils.get_color_from_hex("#3983F2")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    FloatLayout:
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": 1, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                print(app.previous_screen)
+                app.change_screen("events_screen")
+                app.previous_screen = "new_event_screen"
+        TextInput:
+            id: title
+            hint_text: 'title'
+            size_hint: .8, .1
+            pos_hint: {'top': .8, 'right': .9}
+        TextInput:
+            id: description
+            hint_text: 'description'
+            size_hint: .8, .1
+            pos_hint: {'top': .6, 'right': .9}
+        LabelButton:
+            id: chosen_date
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: 'date'
+            markup: True
+            size_hint: .8, .1
+            pos_hint: {'top': .2, 'right': .9}
+            on_release:
+                app.change_screen('event_calendar_screen')
+                app.previous_screen = "new_event_screen"

@@ -11,7 +11,8 @@
             pos_hint: {"top": .9, "right": .25}
             source: "icons/back.png"
             on_release:
-                app.change_screen('home_screen')
+                app.change_screen(app.previous_screen)
+                app.previous_screen = "settings_screen"
         Label:
             id: friend_id_label
             text: "This is settings"
