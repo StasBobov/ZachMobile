@@ -2,7 +2,7 @@ from pprint import pprint
 from my_base import MyBase
 from kivy.app import App
 from kivymd.app import MDApp
-from kivymd.uix.pickers import MDDatePicker
+from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from kivy.uix.button import ButtonBehavior
@@ -121,10 +121,40 @@ class MainApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # Для Date picker
         self.date = AKDatePicker(callback=self.callback)
 
-    def callback(self, date):
-        pass
+    def build(self):
+        self.theme_cls.theme_style = 'Light'
+        self.theme_cls.primary_palette = 'BlueGray'
+        self.my_base = MyBase()
+        Builder.load_file("main.kv")
+
+    def on_start(self):
+
+        try:
+            with open('refresh_token.txt', 'r') as f:
+                refresh_token = f.read()
+
+            id_token, local_id = self.my_base.exchange_refresh_token(refresh_token)
+
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + local_id + '.json?auth=' + id_token)
+            data = json.loads(result.content.decode())
+            self.root.ids['screen_manager'].transition = NoTransition()
+            self.change_screen('home_screen')
+            self.root.ids['screen_manager'].transition = CardTransition()
+
+            start_calendar_fill(self)
+
+        except Exception:
+            pass
+
+    def change_screen(self, screen_name):
+        screen_manager = self.root.ids["screen_manager"]
+        screen_manager.current = screen_name
+
+# ___________________________________Event calendar________________________________________________________________________
 
     def month_back(self):
         EventCalendarScreen.month -= 1
@@ -158,7 +188,9 @@ class MainApp(MDApp):
         if self.previous_screen == "new_event_screen":
             # проверяем, чтобы дата была не меньше текущей
             if EventCalendarScreen.year > EventCalendarScreen.now.year:
+                # переносит на экран создания нового эвента
                 self.change_screen(self.previous_screen)
+                # заполняет поле с датой
                 self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day}/{current_month}/"\
                                                                             f"{EventCalendarScreen.year}"
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month > \
@@ -173,54 +205,78 @@ class MainApp(MDApp):
                                                                                     f" {EventCalendarScreen.year}"
 
 
-    def build(self):
-        self.theme_cls.theme_style = 'Light'
-        self.my_base = MyBase()
-        Builder.load_file("main.kv")
+    def save_new_event(self):
+        title = self.root.ids["new_event_screen"].ids["title"].text
+        description = self.root.ids["new_event_screen"].ids["description"].text
+        time = self.root.ids["new_event_screen"].ids["chosen_time"].text
+        date = self.root.ids["new_event_screen"].ids["chosen_date"].text
+        # проверяем заполнение полей
+        if title == '':
+            self.root.ids["new_event_screen"].ids["info_label"].text = "Please fill in the title field"
+        elif description == '':
+            self.root.ids["new_event_screen"].ids["info_label"].text = "Please fill in the description field"
+        elif date == 'date':
+            self.root.ids["new_event_screen"].ids["info_label"].text = "Please chose the date"
+        elif time == 'time':
+            self.root.ids["new_event_screen"].ids["info_label"].text = "Please chose the time"
+        else:
+            self.root.ids["new_event_screen"].ids["info_label"].text = ''
+            self.root.ids["new_event_screen"].ids["title"].text = ''
+            self.root.ids["new_event_screen"].ids["description"].text = ''
+            self.root.ids["new_event_screen"].ids["chosen_time"].text = 'time'
+            self.root.ids["new_event_screen"].ids["chosen_date"].text = 'date'
+            self.change_screen("events_screen")
 
-    def on_start(self):
+# ___________________________________Time picker________________________________________________________________________
 
-        try:
-            with open('refresh_token.txt', 'r') as f:
-                refresh_token = f.read()
+    def show_time_picker(self):
+        time_dialog = MDTimePicker()
+        # можно поставить время по дефолту
+        default_time = datetime.datetime.strptime("4:20:00", '%H:%M:%S').time()
+        time_dialog.set_time(default_time)
+        time_dialog.bind(on_cancel=self.date_on_cancel, time=self.get_time)
+        time_dialog.open()
 
-            id_token, local_id = self.my_base.exchange_refresh_token(refresh_token)
+    # для time picker
+    def time_on_cancel(self, instance, time):
+        # self.root.ids["new_event_screen"].ids["chosen_date"].text =
+        pass
 
-            result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + local_id + '.json?auth=' + id_token)
-            data = json.loads(result.content.decode())
-            self.root.ids['screen_manager'].transition = NoTransition()
-            self.change_screen('home_screen')
-            self.root.ids['screen_manager'].transition = CardTransition()
+    # для time picker
+    def get_time(self, instance, time):
+        self.root.ids["new_event_screen"].ids["chosen_time"].text = str(time)
+        chosen_time = time
 
-            start_calendar_fill(self)
-
-        except Exception:
-            pass
-
-    def change_screen(self, screen_name):
-        screen_manager = self.root.ids["screen_manager"]
-        screen_manager.current = screen_name
-
-    def open_calendar(self):
-        self.date.open()
+# ___________________________________Date picker________________________________________________________________________
 
     def show_date_picker(self):
         # можно поставить любую конкретную даты в скобках
         date_dialog = MDDatePicker()
         # можно выбрать диапазон, возвращает список с датами
         date_dialog = MDDatePicker(mode='range')
-        date_dialog.bind(on_save=self.on_save, on_cancel=self.on_cancel)
+        date_dialog.bind(on_save=self.on_save, on_cancel=self.date_on_cancel)
         date_dialog.open()
 
+    # для date picker
     def on_save(self, instance, value, date_range):
         print(instance, value, date_range)
 
-    def on_cancel(self, instance, value):
+    # для date picker
+    def date_on_cancel(self, instance, value):
         # не понятно пока как добраться до атрибута text
         pprint(dir(self.root.ids['calendar_screen']))
         # print(self.root.ids.date_label.text)
         # self.root.ids.date_label.text = 'Cancel'
+
+    # для date picker
+    def callback(self, date):
+        pass
+
+    # для date picker
+    def open_calendar(self):
+        self.date.open()
+
+
 
 
 MainApp().run()
