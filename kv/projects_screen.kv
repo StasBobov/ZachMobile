@@ -1,19 +1,266 @@
-<ProjectsScreen>:
+<EScreen>:
     FloatLayout:
-        canvas:
-            Color:
-                rgb: utils.get_color_from_hex("#3983F2")
-            Rectangle:
-                size: self.size
-                pos: self.pos
-        ImageButton:
-            size_hint: .2, .15
-            pos_hint: {"top": .9, "right": .25}
-            source: "icons/back.png"
-            on_release:
-                app.change_screen(app.previous_screen)
-                app.previous_screen = "projects_screen"
-        Label:
-            text: "This is your Projects"
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, .2
+            pos_hint: {"top": 1, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#FF0000")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/back.png"
+                on_release:
+                    app.change_screen(app.previous_screen)
+                    app.previous_screen = "events_screen"
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/add_event.png"
+                on_release:
+                    app.change_screen('new_event_screen')
+                    app.previous_screen = "events_screen"
+        BoxLayout:
+            orientation: 'vertical'
             size_hint: 1, .1
-            pos_hint: {"top": 1, "left": 1}
+            pos_hint: {"top": .8, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#696969")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: "This is your events"
+                size_hint: 1, .5
+                pos_hint: {"top": 1, "left": .5}
+        BoxLayout:
+            id: events_layout
+            name: "events_layout"
+            orientation: 'vertical'
+            pos_hint: {"top": .7, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#8FBC8F")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+
+            FloatLayout:
+                canvas.before:
+                    Color:
+                        rgba: 0, 1, 0, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#C0C0C0")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your title"
+                    size_hint: .8, .3
+                    pos_hint: {"top": 1, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#FF00FF")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your description"
+                    size_hint: .8, .4
+                    pos_hint: {"top": .7, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#F4A460")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Date"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#6A5ACD")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Time"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "right": .8}
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .9, "right": 1}
+                    source: "icons/edit.png"
+                    on_release:
+                        print('Edit')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .6, "right": 1}
+                    source: "icons/done.jpg"
+                    on_release:
+                        print('Done')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .3, "right": 1}
+                    source: "icons/delete.jpg"
+                    on_release:
+                        print('Delete')
+
+            FloatLayout:
+                canvas.before:
+                    Color:
+                        rgba: 0, 0, 1, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#C0C0C0")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your title"
+                    size_hint: .8, .3
+                    pos_hint: {"top": 1, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#FF00FF")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your description"
+                    size_hint: .8, .4
+                    pos_hint: {"top": .7, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#F4A460")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Date"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#6A5ACD")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Time"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "right": .8}
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .9, "right": 1}
+                    source: "icons/edit.png"
+                    on_release:
+                        print('Edit')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .6, "right": 1}
+                    source: "icons/done.jpg"
+                    on_release:
+                        print('Done')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .3, "right": 1}
+                    source: "icons/delete.jpg"
+                    on_release:
+                        print('Delete')
+
+            FloatLayout:
+                canvas.before:
+                    Color:
+                        rgba: 1, 0, 0, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#C0C0C0")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your title"
+                    size_hint: .8, .3
+                    pos_hint: {"top": 1, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#FF00FF")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "This your description"
+                    size_hint: .8, .4
+                    pos_hint: {"top": .7, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#F4A460")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Date"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "left": .5}
+                Label:
+                    canvas.before:
+                        Color:
+                            rgb: utils.get_color_from_hex("#6A5ACD")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos
+                    text: "Time"
+                    size_hint: .4, .3
+                    pos_hint: {"top": .3, "right": .8}
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .9, "right": 1}
+                    source: "icons/edit.png"
+                    on_release:
+                        print('Edit')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .6, "right": 1}
+                    source: "icons/done.jpg"
+                    on_release:
+                        print('Done')
+                ImageButton:
+                    size_hint: .2, .2
+                    pos_hint: {"top": .3, "right": 1}
+                    source: "icons/delete.jpg"
+                    on_release:
+                        print('Delete')
+            ScrollView:
+                pos_hint: {"top": .7, "right": 1}
+                size_hint: 1, .4
+                BoxLayout:
+                    id: events_layout
+                    name: "events_layout"
+                    orientation: 'vertical'
+                    size_hint_y: None
+                    height: self.minimum_height
+                    row_default_height: '100dp'
+                    row_fource_default: True
+                    canvas:
+                        Color:
+                            rgb: utils.get_color_from_hex("#A9A9A9")
+                        Rectangle:
+                            size: self.size
+                            pos: self.pos

@@ -27,7 +27,7 @@ class MyBase:
             app.local_id = localId # uid
             app.id_token = idToken
 
-            my_data = '{"name": "", "lname": "", "email": "", "events": ""}'
+            my_data = '{"name": "", "lname": "", "email": "", "events": "{}"}'
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
             # print(post_request.ok)

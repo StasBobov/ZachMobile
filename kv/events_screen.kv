@@ -1,26 +1,57 @@
 <EventsScreen>:
     FloatLayout:
-        canvas:
-            Color:
-                rgb: utils.get_color_from_hex("#3983F2")
-            Rectangle:
-                size: self.size
-                pos: self.pos
-        ImageButton:
-            size_hint: .2, .15
-            pos_hint: {"top": .9, "right": .25}
-            source: "icons/back.png"
-            on_release:
-                app.change_screen(app.previous_screen)
-                app.previous_screen = "events_screen"
-        ImageButton:
-            size_hint: .2, .25
-            pos_hint: {"top": .7, "right": .25}
-            source: "icons/add_event.png"
-            on_release:
-                app.change_screen('new_event_screen')
-                app.previous_screen = "events_screen"
-        Label:
-            text: "This is your events"
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, .2
+            pos_hint: {"top": 1, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#FF0000")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/back.png"
+                on_release:
+                    app.change_screen(app.previous_screen)
+                    app.previous_screen = "events_screen"
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/add_event.png"
+                on_release:
+                    app.change_screen('new_event_screen')
+                    app.previous_screen = "events_screen"
+        BoxLayout:
+            orientation: 'vertical'
             size_hint: 1, .1
-            pos_hint: {"top": 1, "left": 1}
+            pos_hint: {"top": .8, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#696969")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            Label:
+                text: "This is your events"
+                size_hint: 1, .8
+                pos_hint: {"top": 1, "left": 1}
+        ScrollView:
+            pos_hint: {"top": .7, "right": 1}
+            size_hint: 1, 1
+            GridLayout:
+                id: events_layout
+                name: "events_layout"
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                row_default_height: '100dp'
+                row_fource_default: True
+                canvas:
+                    Color:
+                        rgb: utils.get_color_from_hex("#A9A9A9")
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos

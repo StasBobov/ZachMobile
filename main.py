@@ -5,10 +5,15 @@ from kivymd.app import MDApp
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
-from kivy.uix.button import ButtonBehavior
+from kivy.uix.button import ButtonBehavior, Button
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.relativelayout import RelativeLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
+from kivy.graphics import Color, Rectangle
+import kivy.utils
 import calendar
 import datetime
 import requests
@@ -145,6 +150,9 @@ class MainApp(MDApp):
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
 
+            # заполняем эвенты TODO нужно ли это здесь?
+            self.events_filling(data)
+
             start_calendar_fill(self)
 
         except Exception:
@@ -155,6 +163,45 @@ class MainApp(MDApp):
         screen_manager.current = screen_name
 
 # ___________________________________Event calendar________________________________________________________________________
+
+    # def update_rect(self, event, *args):
+    #     event.rect.pos = event.pos
+    #     event.rect.size = event.size
+
+    # заполняет экран эвентов
+    def events_filling(self, data):
+        # BoxLayout в events_screen
+        events_box_layout = self.root.ids['events_screen'].ids['events_layout']
+        events = data['events'][1:]
+
+        for event in events:
+            layout_for_event = FloatLayout()
+            # with layout_for_event.canvas.before:
+            #     Color(rgb=(kivy.utils.get_color_from_hex('#696969')))
+            #     layout_for_event.rect = Rectangle(size=layout_for_event.size, pos=layout_for_event.pos)
+            # layout_for_event.bind(pos=self.update_rect(layout_for_event), size=self.update_rect(layout_for_event))
+            title = Label(text=event['title'], size_hint=(.8, .3),
+                          pos_hint={"top": 1, "left": .5})
+            description = Label(text=event['description'], size_hint=(.8, .4),
+                                pos_hint={"top": .7, "left": .5})
+            date = Label(text=event['date'], size_hint=(.4, .3),
+                         pos_hint={"top": .3, "left": .5})
+            time = Label(text=event['time'], size_hint=(.4, .3),
+                         pos_hint={"top": .3, "right": .8})
+            edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
+                                      pos_hint={"top": .9, "right": 1})
+            done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+                                      pos_hint={"top": .6, "right": 1})
+            delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                        pos_hint={"top": .3, "right": 1})
+            layout_for_event.add_widget(title)
+            layout_for_event.add_widget(description)
+            layout_for_event.add_widget(date)
+            layout_for_event.add_widget(time)
+            layout_for_event.add_widget(edit_button)
+            layout_for_event.add_widget(done_button)
+            layout_for_event.add_widget(delete_button)
+            events_box_layout.add_widget(layout_for_event)
 
     def month_back(self):
         EventCalendarScreen.month -= 1
@@ -205,7 +252,7 @@ class MainApp(MDApp):
                                                                                     f" {EventCalendarScreen.year}"
 
 
-    def save_new_event(self):
+    def save_new_event(self, time):
         title = self.root.ids["new_event_screen"].ids["title"].text
         description = self.root.ids["new_event_screen"].ids["description"].text
         time = self.root.ids["new_event_screen"].ids["chosen_time"].text
@@ -220,11 +267,13 @@ class MainApp(MDApp):
         elif time == 'time':
             self.root.ids["new_event_screen"].ids["info_label"].text = "Please chose the time"
         else:
+            # TODO в каком виде собрать информацию и как её отправлять?
             self.root.ids["new_event_screen"].ids["info_label"].text = ''
             self.root.ids["new_event_screen"].ids["title"].text = ''
             self.root.ids["new_event_screen"].ids["description"].text = ''
             self.root.ids["new_event_screen"].ids["chosen_time"].text = 'time'
             self.root.ids["new_event_screen"].ids["chosen_date"].text = 'date'
+            print(time)
             self.change_screen("events_screen")
 
 # ___________________________________Time picker________________________________________________________________________
