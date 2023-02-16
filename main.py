@@ -86,8 +86,7 @@ def start_calendar_fill(app):
     # инфо табло/calendar.month_name[month] - текущий месяц  + текущий год
     app.root.ids["event_calendar_screen"].ids["month"].text = calendar.month_name[EventCalendarScreen.month] + \
                                                               ', ' + str(EventCalendarScreen.year)
-    for num in range(42):
-        EventCalendarScreen.days.append(num)
+
     # calendar.monthrange(year, month)[1] - дней в текущем месяце текущего года
     month_days = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[1]
     # если январь
@@ -103,13 +102,13 @@ def start_calendar_fill(app):
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
-        # days[n + week_day]['fg'] = 'black' #TODO
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
             # красим сегодняшний день в зеленый
             app.root.ids["event_calendar_screen"].ids[
                 str(EventCalendarScreen.now.day + week_day - 1)].background_color = \
                 (7 / 255, 222 / 255, 67 / 255, 1)
+            print(EventCalendarScreen.now.day,  week_day)
             #     # остальные дни - серым
             app.root.ids["event_calendar_screen"].ids[str(n + week_day)].background_color = \
                 (99 / 255, 97 / 255, 97 / 255, 1)
@@ -290,6 +289,7 @@ class MainApp(MDApp):
 
     # после нажатия на дату отправляет на предыдущий экран
     def calendar_button_release(self, day, name):
+        print(day, name)
         current_month = EventCalendarScreen.month
         # дни текущего месяца текущего года
         month_days = calendar.monthrange(EventCalendarScreen.year, EventCalendarScreen.month)[1]
@@ -320,7 +320,8 @@ class MainApp(MDApp):
                 self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-{current_month}-" \
                                                                             f"{day}"
             else:
-                print('year, month, day' + EventCalendarScreen.year, current_month, int(day))
+                pass
+        print('finish')
 
     def save_new_event(self):
         title = self.root.ids["new_event_screen"].ids["title"].text
