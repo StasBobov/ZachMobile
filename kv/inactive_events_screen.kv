@@ -16,7 +16,7 @@
                 source: "icons/back.png"
                 on_release:
                     app.change_screen(app.previous_screen)
-                    app.previous_screen = "events_screen"
+                    app.previous_screen = "inactive_events_screen"
             ImageButton:
                 size_hint: .5, .5
                 pos_hint: {"top": .7, "right": .5}
@@ -40,6 +40,7 @@
                 pos_hint: {"top": 1, "left": 1}
                 on_release:
                     app.change_screen('events_screen')
+                    app.previous_screen = 'inactive_events_screen'
             Label:
                 text: "Inactive events"
                 size_hint: .7, .8

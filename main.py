@@ -19,12 +19,12 @@ import json
 
 
 # TODO
-# Доделать всплывающие окна
-# Активизировать кнопки в эвентах
 # Сортировать эвенты по дате и времени
 # Отображать на календаре дни с эвентами
 # По щелчку на день отображать эвенты на этот день
+
 # Размеры диалогового окна
+# Активна или не активна кнопка Back
 
 
 class EventCalendarScreen(Screen):
@@ -177,10 +177,6 @@ class MainApp(MDApp):
 
 # ___________________________________Event calendar________________________________________________________________________
 
-    # def update_rect(self, event, *args):
-    #     event.rect.pos = event.pos
-    #     event.rect.size = event.size
-
     # заполняет экран эвентов
     def events_filling(self):
         result = requests.get(
@@ -190,50 +186,80 @@ class MainApp(MDApp):
         events_box_layout = self.root.ids['events_screen'].ids['events_layout']
         inactive_events_box_layout = self.root.ids['inactive_events_screen'].ids['inactive_events_layout']
         events = data['events']
+        print(events)
         events_keys = events.keys()
         for event_key in events_keys:
             # проходим по всем эвентам и их полям через ключ эвента
             event = events[event_key]
+            print(event)
             layout_for_event = FloatLayout()
-            # with layout_for_event.canvas.before:
-            #     Color(rgb=(kivy.utils.get_color_from_hex('#696969')))
-            #     layout_for_event.rect = Rectangle(size=layout_for_event.size, pos=layout_for_event.pos)
-            # layout_for_event.bind(pos=self.update_rect(layout_for_event), size=self.update_rect(layout_for_event))
-            title = Label(text=event['title'], size_hint=(.8, .3),
-                          pos_hint={"top": 1, "left": .5})
-            description = Label(text=event['description'], size_hint=(.8, .4),
-                                pos_hint={"top": .7, "left": .5})
-            date = Label(text=event['date'], size_hint=(.4, .3),
-                         pos_hint={"top": .3, "left": .5})
-            time = Label(text=event['time'], size_hint=(.4, .3),
-                         pos_hint={"top": .3, "right": .8})
-
-            edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
-                                      pos_hint={"top": .9, "right": 1})
-            but_edit_callback = partial(self.edit_event, event_key)
-            edit_button.bind(on_release=but_edit_callback)
-
-            done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
-                                      pos_hint={"top": .6, "right": 1})
-            but_done_callback = partial(self.done_event, event_key)
-            done_button.bind(on_release=but_done_callback)
-
-            delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                                        pos_hint={"top": .3, "right": 1})
-            layout_for_event.add_widget(title)
-            layout_for_event.add_widget(description)
-            layout_for_event.add_widget(date)
-            layout_for_event.add_widget(time)
-            layout_for_event.add_widget(edit_button)
-            layout_for_event.add_widget(done_button)
-            layout_for_event.add_widget(delete_button)
-            # Записываем в активные или не активные эвенты
+            # добавляем в активные или не активные события
             if event['status'] == 'active':
-                print(event['status'] + 'act')
+                title = Label(text=event['title'], size_hint=(.8, .3),
+                              pos_hint={"top": 1, "left": .5})
+                description = Label(text=event['description'], size_hint=(.8, .4),
+                                    pos_hint={"top": .7, "left": .5})
+                date = Label(text=event['date'], size_hint=(.4, .3),
+                             pos_hint={"top": .3, "left": .5})
+                time = Label(text=event['time'], size_hint=(.4, .3),
+                             pos_hint={"top": .3, "right": .8})
+
+                edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
+                                          pos_hint={"top": 1, "right": 1})
+                but_edit_callback = partial(self.edit_event, event_key)
+                edit_button.bind(on_release=but_edit_callback)
+
+                copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                                          pos_hint={"top": .75, "right": 1})
+                but_copy_callback = partial(self.copy_event, event_key)
+                copy_button.bind(on_release=but_copy_callback)
+
+                done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+                                          pos_hint={"top": .5, "right": 1})
+                but_done_callback = partial(self.done_event, event_key)
+                done_button.bind(on_release=but_done_callback)
+
+                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                            pos_hint={"top": .25, "right": 1})
+                but_delete_callback = partial(self.delete_event, event_key)
+                delete_button.bind(on_release=but_delete_callback)
+
+                layout_for_event.add_widget(title)
+                layout_for_event.add_widget(description)
+                layout_for_event.add_widget(date)
+                layout_for_event.add_widget(time)
+                layout_for_event.add_widget(edit_button)
+                layout_for_event.add_widget(copy_button)
+                layout_for_event.add_widget(done_button)
+                layout_for_event.add_widget(delete_button)
                 events_box_layout.add_widget(layout_for_event)
             elif event['status'] == 'inactive':
-                print(event['status'] + 'inact')
+                title = Label(text=event['title'], size_hint=(.8, .3),
+                              pos_hint={"top": 1, "left": .5})
+                description = Label(text=event['description'], size_hint=(.8, .4),
+                                    pos_hint={"top": .7, "left": .5})
+                date = Label(text=event['date'], size_hint=(.4, .3),
+                             pos_hint={"top": .3, "left": .5})
+                time = Label(text=event['time'], size_hint=(.4, .3),
+                             pos_hint={"top": .3, "right": .8})
+
+                copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                                          pos_hint={"top": .9, "right": 1})
+                but_copy_callback = partial(self.copy_event, event_key)
+                copy_button.bind(on_release=but_copy_callback)
+
+                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                            pos_hint={"top": .3, "right": 1})
+                but_delete_callback = partial(self.delete_event, event_key)
+                delete_button.bind(on_release=but_delete_callback)
+                layout_for_event.add_widget(title)
+                layout_for_event.add_widget(description)
+                layout_for_event.add_widget(date)
+                layout_for_event.add_widget(time)
+                layout_for_event.add_widget(copy_button)
+                layout_for_event.add_widget(delete_button)
                 inactive_events_box_layout.add_widget(layout_for_event)
+
 
     # перезаполняет layouts с эвентами
     def refill_events_layouts(self):
@@ -273,28 +299,28 @@ class MainApp(MDApp):
         if int(name) < week_day:
             # месяц считается предыдущим
             current_month -= 1
-            # если переходили из создания нового эвента
         elif int(name) >= week_day + month_days:
             current_month += 1
-
         if self.previous_screen == "new_event_screen":
             # проверяем, чтобы дата была не меньше текущей
             if EventCalendarScreen.year > EventCalendarScreen.now.year:
                 # переносит на экран создания нового эвента
                 self.change_screen(self.previous_screen)
                 # заполняет поле с датой
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day}/{current_month}/" \
-                                                                            f"{EventCalendarScreen.year}"
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-{current_month}-" \
+                                                                            f"{day}"
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month > \
                     EventCalendarScreen.now.month:
                 self.change_screen(self.previous_screen)
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day}/{current_month}/" \
-                                                                            f"{EventCalendarScreen.year}"
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-{current_month}-" \
+                                                                            f"{day}"
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month >= \
                     EventCalendarScreen.now.month and int(day) >= EventCalendarScreen.now.day:
                 self.change_screen(self.previous_screen)
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{day} / {current_month} /" \
-                                                                            f" {EventCalendarScreen.year}"
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-{current_month}-" \
+                                                                            f"{day}"
+            else:
+                print('year, month, day' + EventCalendarScreen.year, current_month, int(day))
 
     def save_new_event(self):
         title = self.root.ids["new_event_screen"].ids["title"].text
@@ -343,13 +369,7 @@ class MainApp(MDApp):
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (self.local_id, arg, self.id_token))
                 self.operating_event = arg
-                event_data = json.loads(edit_event_request.content.decode())
-                self.root.ids["new_event_screen"].ids["info_label"].text = ''
-                self.root.ids["new_event_screen"].ids["title"].text = event_data['title']
-                self.root.ids["new_event_screen"].ids["description"].text = event_data['description']
-                self.root.ids["new_event_screen"].ids["chosen_time"].text = event_data['time']
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = event_data['date']
-                self.change_screen('new_event_screen')
+                self.fill_new_event_screen(edit_event_request)
 
     def done_event(self, *args):
         for arg in args:
@@ -358,48 +378,81 @@ class MainApp(MDApp):
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (self.local_id, arg, self.id_token))
                 self.operating_event = arg
-                event_data = json.loads(edit_event_request.content.decode())
-                self.root.ids["new_event_screen"].ids["info_label"].text = ''
-                self.root.ids["new_event_screen"].ids["title"].text = event_data['title']
-                self.root.ids["new_event_screen"].ids["description"].text = event_data['description']
-                self.root.ids["new_event_screen"].ids["chosen_time"].text = event_data['time']
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = event_data['date']
-                self.change_screen('new_event_screen')
+                self.fill_new_event_screen(edit_event_request)
+                self.create_modal_window(name='Done!', label="It's finished?", command='patch')
 
-                # Создаём модальное окно
-                bl = BoxLayout(orientation='vertical')
-                l = Label(text="It's finished?", font_size=12)
-                bl.add_widget(l)
-                bl2 = BoxLayout(orientation='horizontal')
-                but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
-                but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
-                bl2.add_widget(but_no)
-                bl2.add_widget(but_yes)
-                bl.add_widget(bl2)
-                popup = Popup(title='Done!', content=bl, size_hint=(0.4, 0.4),  pos_hint={"x": 0.2, "top": 0.9},
-                              auto_dismiss=False)
+    def delete_event(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                get_event_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.operating_event = arg
+                self.create_modal_window(name='Delete!', label='Delete event!?', command='delete')
+                self.fill_new_event_screen(get_event_request)
 
-                # усли не будешь менять статус
-                def no(*args):
-                    popup.dismiss()
-                    self.change_screen("events_screen")
-                    self.clear_new_event_screen()
-
-                # чтобы перенести в выполненные
-                def yes(*args):
-                    popup.dismiss()
-                    done_event_request = requests.patch(
-                        'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                        % (self.local_id, self.operating_event, self.id_token), data=json.dumps({'status': 'inactive'}))
-                    self.refill_events_layouts()
-                    self.change_screen("events_screen")
-                    self.clear_new_event_screen()
-
-                but_no.bind(on_press=no)
-                but_yes.bind(on_press=yes)
-                popup.open()
+    def copy_event(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                copy_event_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.fill_new_event_screen(copy_event_request)
 
 
+    def fill_new_event_screen(self, event_request):
+        event_data = json.loads(event_request.content.decode())
+        if event_data['status'] == 'inactive':
+            self.previous_screen = 'inactive_events_screen'
+        else:
+            self.previous_screen = 'events_screen'
+        self.root.ids["new_event_screen"].ids["info_label"].text = ''
+        self.root.ids["new_event_screen"].ids["title"].text = event_data['title']
+        self.root.ids["new_event_screen"].ids["description"].text = event_data['description']
+        self.root.ids["new_event_screen"].ids["chosen_time"].text = event_data['time']
+        self.root.ids["new_event_screen"].ids["chosen_date"].text = event_data['date']
+        self.change_screen('new_event_screen')
+
+    def create_modal_window(self, name, label, command):
+        # Создаём модальное окно
+        bl = BoxLayout(orientation='vertical')
+        l = Label(text=label, font_size=12)
+        bl.add_widget(l)
+        bl2 = BoxLayout(orientation='horizontal')
+        but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
+        but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
+        bl2.add_widget(but_no)
+        bl2.add_widget(but_yes)
+        bl.add_widget(bl2)
+        popup = Popup(title=name, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+                      auto_dismiss=False)
+
+        # усли не будешь менять статус
+        def no(*args):
+            popup.dismiss()
+            self.change_screen(self.previous_screen)
+            self.clear_new_event_screen()
+            self.operating_event = ''
+
+        # чтобы перенести в выполненные/удалить
+        def yes(*args):
+            popup.dismiss()
+            if command == 'patch':
+                done_event_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (self.local_id, self.operating_event, self.id_token), data=json.dumps({'status': 'inactive'}))
+            elif command == 'delete':
+                delete_event_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (self.local_id, self.operating_event, self.id_token), data=json.dumps({'status': 'inactive'}))
+            self.refill_events_layouts()
+            self.change_screen(self.previous_screen)
+            self.clear_new_event_screen()
+            self.operating_event = ''
+
+        but_no.bind(on_press=no)
+        but_yes.bind(on_press=yes)
+        popup.open()
 
 # ___________________________________Time picker________________________________________________________________________
 
@@ -421,7 +474,7 @@ class MainApp(MDApp):
         self.root.ids["new_event_screen"].ids["chosen_time"].text = str(time)
         chosen_time = time
 
-    # ___________________________________Date picker________________________________________________________________________
+# ___________________________________Date picker________________________________________________________________________
 
     def show_date_picker(self):
         # можно поставить любую конкретную даты в скобках
