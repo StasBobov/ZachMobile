@@ -103,6 +103,7 @@ def start_calendar_fill(app):
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
+        # days[n + week_day]['fg'] = 'black' #TODO
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
             # красим сегодняшний день в зеленый
@@ -115,6 +116,7 @@ def start_calendar_fill(app):
         else:
             app.root.ids["event_calendar_screen"].ids[str(n + week_day)].background_color = \
                 (99 / 255, 97 / 255, 97 / 255, 1)
+
 
     # заполняем дни предыдущего месяца
     for n in range(week_day):
@@ -161,6 +163,7 @@ class MainApp(MDApp):
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
+
             # заполняем эвенты TODO нужно ли это здесь?
             self.events_filling()
             start_calendar_fill(self)
@@ -172,7 +175,11 @@ class MainApp(MDApp):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
-    # ___________________________________Event calendar________________________________________________________________________
+# ___________________________________Event calendar________________________________________________________________________
+
+    # def update_rect(self, event, *args):
+    #     event.rect.pos = event.pos
+    #     event.rect.size = event.size
 
     # заполняет экран эвентов
     def events_filling(self):
@@ -188,6 +195,10 @@ class MainApp(MDApp):
             # проходим по всем эвентам и их полям через ключ эвента
             event = events[event_key]
             layout_for_event = FloatLayout()
+            # with layout_for_event.canvas.before:
+            #     Color(rgb=(kivy.utils.get_color_from_hex('#696969')))
+            #     layout_for_event.rect = Rectangle(size=layout_for_event.size, pos=layout_for_event.pos)
+            # layout_for_event.bind(pos=self.update_rect(layout_for_event), size=self.update_rect(layout_for_event))
             title = Label(text=event['title'], size_hint=(.8, .3),
                           pos_hint={"top": 1, "left": .5})
             description = Label(text=event['description'], size_hint=(.8, .4),
@@ -390,7 +401,7 @@ class MainApp(MDApp):
 
 
 
-    # ___________________________________Time picker________________________________________________________________________
+# ___________________________________Time picker________________________________________________________________________
 
     def show_time_picker(self):
         time_dialog = MDTimePicker()
