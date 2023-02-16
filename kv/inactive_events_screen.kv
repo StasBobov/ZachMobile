@@ -1,4 +1,4 @@
-<EventsScreen>:
+<InactiveEventsScreen>:
     FloatLayout:
         BoxLayout:
             orientation: 'horizontal'
@@ -34,22 +34,22 @@
                 Rectangle:
                     size: self.size
                     pos: self.pos
-            Label:
-                text: "Active events"
-                size_hint: .7, .8
-                pos_hint: {"top": 1, "left": 1}
             LabelButton:
-                text: "Inactive events"
+                text: "Active events"
                 size_hint: .3, .8
-                pos_hint: {"top": 1, "left":.3}
+                pos_hint: {"top": 1, "left": 1}
                 on_release:
-                    app.change_screen('inactive_events_screen')
+                    app.change_screen('events_screen')
+            Label:
+                text: "Inactive events"
+                size_hint: .7, .8
+                pos_hint: {"top": 1, "left":.7}
         ScrollView:
             pos_hint: {"top": .7, "right": 1}
             size_hint: 1, .7
             GridLayout:
-                id: events_layout
-                name: "events_layout"
+                id: inactive_events_layout
+                name: "inactive_events_layout"
                 cols: 1
                 size_hint_y: None
                 height: self.minimum_height

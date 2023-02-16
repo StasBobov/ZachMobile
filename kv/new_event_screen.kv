@@ -1,3 +1,31 @@
+#:import Factory kivy.factory.Factory
+<MyPopup@Popup>
+    auto_dismiss: False
+    size_hint: 0.4, 0.4
+    pos_hint: {"x": 0.2, "top": 0.9}
+    title: 'Close without saving'
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Exit without saving?"
+            font_size: 12
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                text: 'Do not save'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+                    app.change_screen("events_screen")
+                    app.clear_new_event_screen()
+            Button:
+                text: 'Stay'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+
 <NewEventScreen>:
     FloatLayout:
         canvas:
@@ -11,8 +39,8 @@
             pos_hint: {"top": 1, "right": .25}
             source: "icons/back.png"
             on_release:
-                app.change_screen("events_screen")
-                app.previous_screen = "new_event_screen"
+                Factory.MyPopup().open()
+
         TextInput:
             id: title
             name: "title"
@@ -24,7 +52,7 @@
             id: description
             name: "description"
             hint_text: 'description'
-            size_hint: .8, .3
+            size_hint: .8, .2
             pos_hint: {'top': .6, 'right': .9}
         Label:
             id: info_label
@@ -72,5 +100,4 @@
             pos_hint: {"top": .15, "right": .5}
             source: "icons/clear.png"
             on_release:
-                app.change_screen("events_screen")
-                app.previous_screen = "new_event_screen"
+                app.clear_new_event_screen()
