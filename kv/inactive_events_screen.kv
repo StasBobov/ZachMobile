@@ -17,6 +17,22 @@
                 on_release:
                     app.change_screen(app.previous_screen)
                     app.previous_screen = "inactive_events_screen"
+            LabelButton:
+                id: inactive_sort_by_date
+                name: 'inactive_sort_by_date'
+                text: 'Sort by date'
+                on_release:
+                    app.change_screen('event_calendar_screen')
+                    app.previous_screen = "events_screen"
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .1}
+                source: "icons/krest.png"
+                on_release:
+                    app.date_sort = None
+                    inactive_sort_by_date.text = 'Sort by date'
+                    app.root.ids['events_screen'].ids['sort_by_date'].text = 'Sort by date'
+                    app.refill_events_layouts(app.date_sort )
             ImageButton:
                 size_hint: .5, .5
                 pos_hint: {"top": .7, "right": .5}

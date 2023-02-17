@@ -20,7 +20,6 @@ import json
 
 # TODO
 # Отображать на календаре дни с эвентами
-# По щелчку на день отображать эвенты на этот день
 
 # Размеры диалогового окна
 # Активна или не активна кнопка Back
@@ -134,6 +133,8 @@ class MainApp(MDApp):
     user_id = 1
     # эвент, с которым сейчас работаем
     operating_event = ''
+    # отбор по дате
+    date_sort = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -162,7 +163,7 @@ class MainApp(MDApp):
             self.root.ids['screen_manager'].transition = CardTransition()
 
             # заполняем эвенты TODO нужно ли это здесь?
-            self.events_filling()
+            self.events_filling(sort=None)
             start_calendar_fill(self)
 
         except Exception:
@@ -201,38 +202,43 @@ class MainApp(MDApp):
             current_month -= 1
         elif int(name) >= week_day + month_days:
             current_month += 1
+
+        # форматируем дату и время
+        if len(str(current_month)) < 2:
+            formatted_month = '0' + str(current_month)
+        else:
+            formatted_month = current_month
+        if len(str(day)) < 2:
+            formatted_day = '0' + str(day)
+        else:
+            formatted_day = day
+        formatted_date = f"{EventCalendarScreen.year}-{formatted_month}-{formatted_day}"
+
         if self.previous_screen == "new_event_screen":
-            # форматируем дату и время
-            if len(str(current_month)) < 2:
-                formatted_month = '0' + str(current_month)
-            else:
-                formatted_month = current_month
-            if len(str(day)) < 2:
-                formatted_day = '0' + str(day)
-            else:
-                formatted_day = day
             # проверяем, чтобы дата была не меньше текущей
             if EventCalendarScreen.year > EventCalendarScreen.now.year:
                 # переносит на экран создания нового эвента
                 self.change_screen(self.previous_screen)
                 # заполняет поле с датой
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-" \
-                                                                            f"{formatted_month}-{formatted_day}"
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = formatted_date
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month > \
                     EventCalendarScreen.now.month:
                 self.change_screen(self.previous_screen)
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-"\
-                                                                            f"{formatted_month}-{formatted_day}"
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = formatted_date
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month >= \
                     EventCalendarScreen.now.month and int(day) >= EventCalendarScreen.now.day:
                 self.change_screen(self.previous_screen)
-                self.root.ids["new_event_screen"].ids["chosen_date"].text = f"{EventCalendarScreen.year}-" \
-                                                                            f"{formatted_month}-{formatted_day}"
-            else:
-                pass
+                self.root.ids["new_event_screen"].ids["chosen_date"].text =formatted_date
+        # Отбираем события по дате
+        else:
+            self.date_sort = formatted_date
+            self.root.ids["events_screen"].ids["sort_by_date"].text = self.date_sort
+            self.root.ids["inactive_events_screen"].ids["inactive_sort_by_date"].text = self.date_sort
+            self.refill_events_layouts(sort=self.date_sort)
+            self.change_screen('events_screen')
 
     # заполняет экран эвентов
-    def events_filling(self):
+    def events_filling(self, sort):
         result = requests.get(
             'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
         data = json.loads(result.content.decode())
@@ -257,75 +263,77 @@ class MainApp(MDApp):
         active = 0
         inactive = 0
         for event in events_list:
-            layout_for_event = FloatLayout()
-            # добавляем в активные или не активные события
-            if event['status'] == 'active':
-                active += 1
-                title = Label(text=event['title'], size_hint=(.8, .3),
-                              pos_hint={"top": 1, "left": .5})
-                description = Label(text=event['description'], size_hint=(.8, .4),
-                                    pos_hint={"top": .7, "left": .5})
-                date = Label(text=event['date'], size_hint=(.4, .3),
-                             pos_hint={"top": .3, "left": .5})
-                time = Label(text=event['time'], size_hint=(.4, .3),
-                             pos_hint={"top": .3, "right": .8})
+            if sort is None or sort == event['date']:
+                layout_for_event = FloatLayout()
+                # добавляем в активные или не активные события
+                if event['status'] == 'active':
+                    active += 1
+                    title = Label(text=event['title'], size_hint=(.8, .3),
+                                  pos_hint={"top": 1, "left": .5})
+                    description = Label(text=event['description'], size_hint=(.8, .4),
+                                        pos_hint={"top": .7, "left": .5})
+                    date = Label(text=event['date'], size_hint=(.4, .3),
+                                 pos_hint={"top": .3, "left": .5})
+                    time = Label(text=event['time'], size_hint=(.4, .3),
+                                 pos_hint={"top": .3, "right": .8})
 
-                edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
-                                          pos_hint={"top": 1, "right": 1})
-                but_edit_callback = partial(self.edit_event, event['event_key'])
-                edit_button.bind(on_release=but_edit_callback)
+                    edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
+                                              pos_hint={"top": 1, "right": 1})
+                    but_edit_callback = partial(self.edit_event, event['event_key'])
+                    edit_button.bind(on_release=but_edit_callback)
 
-                copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
-                                          pos_hint={"top": .75, "right": 1})
-                but_copy_callback = partial(self.copy_event, event['event_key'])
-                copy_button.bind(on_release=but_copy_callback)
+                    copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                                              pos_hint={"top": .75, "right": 1})
+                    but_copy_callback = partial(self.copy_event, event['event_key'])
+                    copy_button.bind(on_release=but_copy_callback)
 
-                done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
-                                          pos_hint={"top": .5, "right": 1})
-                but_done_callback = partial(self.done_event, event['event_key'])
-                done_button.bind(on_release=but_done_callback)
+                    done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+                                              pos_hint={"top": .5, "right": 1})
+                    but_done_callback = partial(self.done_event, event['event_key'])
+                    done_button.bind(on_release=but_done_callback)
 
-                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                                            pos_hint={"top": .25, "right": 1})
-                but_delete_callback = partial(self.delete_event, event['event_key'])
-                delete_button.bind(on_release=but_delete_callback)
+                    delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                                pos_hint={"top": .25, "right": 1})
+                    but_delete_callback = partial(self.delete_event, event['event_key'])
+                    delete_button.bind(on_release=but_delete_callback)
 
-                layout_for_event.add_widget(title)
-                layout_for_event.add_widget(description)
-                layout_for_event.add_widget(date)
-                layout_for_event.add_widget(time)
-                layout_for_event.add_widget(edit_button)
-                layout_for_event.add_widget(copy_button)
-                layout_for_event.add_widget(done_button)
-                layout_for_event.add_widget(delete_button)
-                events_box_layout.add_widget(layout_for_event)
-            elif event['status'] == 'inactive':
-                inactive += 1
-                title = Label(text=event['title'], size_hint=(.8, .3),
-                              pos_hint={"top": 1, "left": .5})
-                description = Label(text=event['description'], size_hint=(.8, .4),
-                                    pos_hint={"top": .7, "left": .5})
-                date = Label(text=event['date'], size_hint=(.4, .3),
-                             pos_hint={"top": .3, "left": .5})
-                time = Label(text=event['time'], size_hint=(.4, .3),
-                             pos_hint={"top": .3, "right": .8})
+                    layout_for_event.add_widget(title)
+                    layout_for_event.add_widget(description)
+                    layout_for_event.add_widget(date)
+                    layout_for_event.add_widget(time)
+                    layout_for_event.add_widget(edit_button)
+                    layout_for_event.add_widget(copy_button)
+                    layout_for_event.add_widget(done_button)
+                    layout_for_event.add_widget(delete_button)
+                    events_box_layout.add_widget(layout_for_event)
+                elif event['status'] == 'inactive':
+                    inactive += 1
+                    title = Label(text=event['title'], size_hint=(.8, .3),
+                                  pos_hint={"top": 1, "left": .5})
+                    description = Label(text=event['description'], size_hint=(.8, .4),
+                                        pos_hint={"top": .7, "left": .5})
+                    date = Label(text=event['date'], size_hint=(.4, .3),
+                                 pos_hint={"top": .3, "left": .5})
+                    time = Label(text=event['time'], size_hint=(.4, .3),
+                                 pos_hint={"top": .3, "right": .8})
 
-                copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
-                                          pos_hint={"top": .9, "right": 1})
-                but_copy_callback = partial(self.copy_event, event['event_key'])
-                copy_button.bind(on_release=but_copy_callback)
+                    copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                                              pos_hint={"top": .9, "right": 1})
+                    but_copy_callback = partial(self.copy_event, event['event_key'])
+                    copy_button.bind(on_release=but_copy_callback)
 
-                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                                            pos_hint={"top": .3, "right": 1})
-                but_delete_callback = partial(self.delete_event, event['event_key'])
-                delete_button.bind(on_release=but_delete_callback)
-                layout_for_event.add_widget(title)
-                layout_for_event.add_widget(description)
-                layout_for_event.add_widget(date)
-                layout_for_event.add_widget(time)
-                layout_for_event.add_widget(copy_button)
-                layout_for_event.add_widget(delete_button)
-                inactive_events_box_layout.add_widget(layout_for_event)
+                    delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                                pos_hint={"top": .3, "right": 1})
+                    but_delete_callback = partial(self.delete_event, event['event_key'])
+                    delete_button.bind(on_release=but_delete_callback)
+                    layout_for_event.add_widget(title)
+                    layout_for_event.add_widget(description)
+                    layout_for_event.add_widget(date)
+                    layout_for_event.add_widget(time)
+                    layout_for_event.add_widget(copy_button)
+                    layout_for_event.add_widget(delete_button)
+                    inactive_events_box_layout.add_widget(layout_for_event)
+
         # Если нет эвентов в списке
         if active == 0:
             l = Label(text='You have no scheduled events', font_size='20sp')
@@ -335,7 +343,7 @@ class MainApp(MDApp):
             inactive_events_box_layout.add_widget(l)
 
     # перезаполняет layouts с эвентами
-    def refill_events_layouts(self):
+    def refill_events_layouts(self, sort):
         events_box_layout = self.root.ids['events_screen'].ids['events_layout']
         inactive_events_box_layout = self.root.ids['inactive_events_screen'].ids['inactive_events_layout']
         for w in events_box_layout.walk():
@@ -345,7 +353,7 @@ class MainApp(MDApp):
         for w in inactive_events_box_layout.walk():
             if w.__class__ == FloatLayout or w.__class__ == Label:
                 inactive_events_box_layout.remove_widget(w)
-        self.events_filling()
+        self.events_filling(sort=sort)
 
     def save_new_event(self):
         title = self.root.ids["new_event_screen"].ids["title"].text
@@ -380,7 +388,7 @@ class MainApp(MDApp):
 
             self.clear_new_event_screen()
             self.change_screen("events_screen")
-            self.refill_events_layouts()
+            self.refill_events_layouts(sort=self.date_sort)
 
     def clear_new_event_screen(self):
         self.root.ids["new_event_screen"].ids["info_label"].text = ''
@@ -472,7 +480,7 @@ class MainApp(MDApp):
                 delete_event_request = requests.delete(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (self.local_id, self.operating_event, self.id_token), data=json.dumps({'status': 'inactive'}))
-            self.refill_events_layouts()
+            self.refill_events_layouts(sort=self.date_sort)
             self.change_screen(self.previous_screen)
             self.clear_new_event_screen()
             self.operating_event = ''
