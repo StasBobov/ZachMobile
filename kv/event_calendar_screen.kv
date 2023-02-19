@@ -40,6 +40,8 @@
                     app.month_next()
 
         GridLayout:
+            id: calendar_layout
+            name: "calendar_layout"
             cols: 7
             rows: 7
             ### row 1 ###
@@ -67,9 +69,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -87,9 +90,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -107,9 +111,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -127,9 +132,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -147,9 +153,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -167,9 +174,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -187,9 +195,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -208,9 +217,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -229,9 +239,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -249,9 +260,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -269,9 +281,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -289,9 +302,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -309,9 +323,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -329,9 +344,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -350,9 +366,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -370,9 +387,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -390,9 +408,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -410,9 +429,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -430,9 +450,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -450,9 +471,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -470,9 +492,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -491,9 +514,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -511,9 +535,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -531,9 +556,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -551,9 +577,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -571,9 +598,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -591,9 +619,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -611,9 +640,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -632,9 +662,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -652,9 +683,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -672,9 +704,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -692,9 +725,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -712,9 +746,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -732,9 +767,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -752,9 +788,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -773,9 +810,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -793,9 +831,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -813,9 +852,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -833,9 +873,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -853,9 +894,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -873,9 +915,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos
@@ -893,9 +936,10 @@
                     font_size: '13sp'
                     size_hint: 1, .25
                     pos_hint: {"top": 1, "right": 1}
+                    background_color: (24/255, 171/255, 21/255, 1)
                     canvas.before:
                         Color:
-                            rgb: utils.get_color_from_hex('#32CD32')
+                            rgba: self.background_color
                         Rectangle:
                             size: self.size
                             pos: self.pos

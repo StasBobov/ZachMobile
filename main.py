@@ -3,6 +3,7 @@ from pprint import pprint
 from PIL.ImageQt import rgb
 from kivy import utils
 from kivy.graphics import Color, Rectangle
+from kivy.properties import NumericProperty, ListProperty
 from kivy.uix.popup import Popup
 from my_base import MyBase
 from kivymd.app import MDApp
@@ -16,6 +17,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 from functools import partial
+from kivy.animation import Animation
 import calendar
 import datetime
 import requests
@@ -107,18 +109,18 @@ def start_calendar_fill(app):
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
-        day_events = 0
-        form_day = app.formatted_date(EventCalendarScreen.month, n+1)
-        for event in app.events_list:
-            if event['date'] == form_day:
-                day_events += 1
-        app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].text = f'{day_events} ev'
-        with app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].canvas:
-            Color(rgba=utils.get_color_from_hex('#FF4500'))
-            Rectangle(pos=app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].pos,
-                      size=app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].size)
+        formatting_label(app=app, day=n + 1, label_day_id=str(n + week_day) , direction='ok')
+        # label_id = app.root.ids["event_calendar_screen"].ids[str(n + week_day) + 'l']
 
-
+        # day_events = 0
+        # form_day = app.formatted_date(EventCalendarScreen.month, n + 1)
+        # for event in app.events_list:
+        #     if event['date'] == form_day:
+        #         day_events += 1
+        # # отмечаем на календаре события
+        # label_id.text = f'{day_events} ev'
+        # if day_events > 0:
+        #     label_id.background_color = (222 / 255, 121 / 255, 65 / 255, 1)
 
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
@@ -133,18 +135,63 @@ def start_calendar_fill(app):
             app.root.ids["event_calendar_screen"].ids[str(n + week_day)].background_color = \
                 (99 / 255, 97 / 255, 97 / 255, 1)
 
-
     # заполняем дни предыдущего месяца
     for n in range(week_day):
+        formatting_label(app=app, day=back_month_days - n, label_day_id=str(week_day - n - 1), direction='back')
+        # day_events = 0
+        # label_id = app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1) + 'l']
+        # if EventCalendarScreen.month == 0:
+        #     current_month = 12
+        # else:
+        #     current_month = EventCalendarScreen.month -1
+        # form_day = app.formatted_date(current_month, back_month_days - n)
+        # for event in app.events_list:
+        #     if event['date'] == form_day:
+        #         day_events += 1
+        #     # отмечаем на календаре события
+        # label_id.text = f'{day_events} ev'
+        # if day_events > 0:
+        #     label_id.background_color = (222 / 255, 121 / 255, 65 / 255, 1)
         app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].text = str(back_month_days - n)
         app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].background_color = \
             (193 / 255, 198 / 255, 198 / 255, 1)
+
     # заполняем дни следующего месяца
     for n in range(6 * 7 - month_days - week_day):
+        formatting_label(app=app, day=n + 1, label_day_id=str(week_day + month_days + n), direction='next')
         app.root.ids["event_calendar_screen"].ids[str(week_day + month_days + n)].text = str(n + 1)
         app.root.ids["event_calendar_screen"].ids[str(week_day + month_days + n)].background_color = \
             (193 / 255, 198 / 255, 198 / 255, 1)
         # days[week_day + month_days + n]['fg'] = 'gray'
+
+
+# Заполняем лэйбы с эвентами
+def formatting_label(app, day, label_day_id, direction):
+    day_events = 0
+    current_month = EventCalendarScreen.month
+    label_id = app.root.ids["event_calendar_screen"].ids[label_day_id + 'l']
+    if direction == 'next':
+        if EventCalendarScreen.month == 12:
+            current_month = 1
+        else:
+            current_month = EventCalendarScreen.month + 1
+    elif direction == 'back':
+        if EventCalendarScreen.month == 0:
+            current_month = 12
+        else:
+            current_month = EventCalendarScreen.month - 1
+    form_day = app.formatted_date(current_month, day)
+    for event in app.events_list:
+        if event['date'] == form_day:
+            day_events += 1
+        # отмечаем на календаре события
+        print(day_events)
+        label_id.text = f'{day_events} ev'
+        if day_events > 0:
+            label_id.background_color = (222 / 255, 121 / 255, 65 / 255, 1)
+        else:
+            label_id.background_color = (24/255, 171/255, 21/255, 1)
+
 
 
 class MainApp(MDApp):
@@ -185,7 +232,7 @@ class MainApp(MDApp):
 
             # заполняем эвенты TODO нужно ли это здесь?
             self.events_filling(sort=None)
-            start_calendar_fill(self)
+            # start_calendar_fill(self)
 
         except Exception:
             pass
@@ -194,7 +241,7 @@ class MainApp(MDApp):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
-# ___________________________________Event calendar________________________________________________________________________
+    # ___________________________________Event calendar________________________________________________________________________
 
     def month_back(self):
         EventCalendarScreen.month -= 1
@@ -221,7 +268,6 @@ class MainApp(MDApp):
         else:
             formatted_day = day
         return f"{EventCalendarScreen.year}-{formatted_month}-{formatted_day}"
-
 
     # после нажатия на дату отправляет на предыдущий экран
     def calendar_button_release(self, day, name):
@@ -253,10 +299,12 @@ class MainApp(MDApp):
             elif EventCalendarScreen.year >= EventCalendarScreen.now.year and current_month >= \
                     EventCalendarScreen.now.month and int(day) >= EventCalendarScreen.now.day:
                 self.change_screen(self.previous_screen)
-                self.root.ids["new_event_screen"].ids["chosen_date"].text =formatted_date
+                self.root.ids["new_event_screen"].ids["chosen_date"].text = formatted_date
         # Отбираем события по дате
         else:
             self.date_sort = formatted_date
+            # лепит автоматом в новый эвент дату из сортировки
+            self.root.ids["new_event_screen"].ids["chosen_date"].text = formatted_date
             self.root.ids["events_screen"].ids["sort_by_date"].text = self.date_sort
             self.root.ids["inactive_events_screen"].ids["inactive_sort_by_date"].text = self.date_sort
             self.refill_events_layouts(sort=self.date_sort)
@@ -281,8 +329,8 @@ class MainApp(MDApp):
         for event_key in events_keys:
             events[event_key]['event_key'] = str(event_key)
             events_list.append(events[event_key])
-        events_list =  sorted(events_list, key=lambda x: datetime.datetime.strptime(x['date_time'], '%Y-%m-%d %H:%M:%S'),
-                              reverse=False)
+        events_list = sorted(events_list, key=lambda x: datetime.datetime.strptime(x['date_time'], '%Y-%m-%d %H:%M:%S'),
+                             reverse=False)
         self.events_list = events_list
         # Заполнение
         active = 0
@@ -358,6 +406,8 @@ class MainApp(MDApp):
                     layout_for_event.add_widget(copy_button)
                     layout_for_event.add_widget(delete_button)
                     inactive_events_box_layout.add_widget(layout_for_event)
+        # заполняем календарь
+        start_calendar_fill(self)
 
         # Если нет эвентов в списке
         if active == 0:
@@ -402,8 +452,9 @@ class MainApp(MDApp):
                                    'status': 'active', 'date_time': date_time}
             if self.operating_event == '':
                 # requests.post присваивает запросу ключ
-                new_event_request = requests.post('https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
-                                                  % (self.local_id, self.id_token), data=json.dumps(event_data_for_load))
+                new_event_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
+                    % (self.local_id, self.id_token), data=json.dumps(event_data_for_load))
             # если эвент уже существует, то меняем
             else:
                 edit_event_request = requests.patch(
@@ -459,7 +510,6 @@ class MainApp(MDApp):
                     % (self.local_id, arg, self.id_token))
                 self.fill_new_event_screen(copy_event_request)
 
-
     def fill_new_event_screen(self, event_request):
         event_data = json.loads(event_request.content.decode())
         if event_data['status'] == 'inactive':
@@ -514,7 +564,7 @@ class MainApp(MDApp):
         but_yes.bind(on_press=yes)
         popup.open()
 
-# ___________________________________Time picker________________________________________________________________________
+    # ___________________________________Time picker________________________________________________________________________
 
     def show_time_picker(self):
         time_dialog = MDTimePicker()
@@ -534,7 +584,7 @@ class MainApp(MDApp):
         self.root.ids["new_event_screen"].ids["chosen_time"].text = str(time)
         chosen_time = time
 
-# ___________________________________Date picker________________________________________________________________________
+    # ___________________________________Date picker________________________________________________________________________
 
     def show_date_picker(self):
         # можно поставить любую конкретную даты в скобках
