@@ -1,0 +1,66 @@
+#:import Factory kivy.factory.Factory
+<MyTaskPopup@Popup>
+    auto_dismiss: False
+    size_hint: 0.4, 0.4
+    pos_hint: {"x": 0.2, "top": 0.9}
+    title: 'Close without saving'
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Exit without saving?"
+            font_size: 12
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                text: 'Do not save'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+                    app.change_screen("todolist_screen")
+                    app.clear_new_task_screen()
+            Button:
+                text: 'Stay'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+
+<NewTaskScreen>:
+    FloatLayout:
+        canvas:
+            Color:
+                rgb: utils.get_color_from_hex("#3983F2")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": 1, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                Factory.MyTaskPopup().open()
+
+        TextInput:
+            id: task_description
+            name: "task_description"
+            hint_text: 'your task'
+            size_hint: .8, .3
+            pos_hint: {'top': .8, 'right': .9}
+        Label:
+            id: task_info_label
+            name: "task_info_label"
+            size_hint: .8, .1
+            pos_hint: {'top': .5, 'right': .9}
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": .1, "right": .9}
+            source: "icons/save.png"
+            on_release:
+                app.save_new_task()
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": .1, "right": .5}
+            source: "icons/clear.png"
+            on_release:
+                app.clear_new_task_screen()

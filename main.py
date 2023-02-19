@@ -1,9 +1,4 @@
 from pprint import pprint
-
-from PIL.ImageQt import rgb
-from kivy import utils
-from kivy.graphics import Color, Rectangle
-from kivy.properties import NumericProperty, ListProperty
 from kivy.uix.popup import Popup
 from my_base import MyBase
 from kivymd.app import MDApp
@@ -17,7 +12,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 from functools import partial
-from kivy.animation import Animation
 import calendar
 import datetime
 import requests
@@ -25,11 +19,8 @@ import json
 
 
 # TODO
-# Отображать на календаре дни с эвентами
-# - изменения цвета
-# - обновление при создание нового эвента
-# - предыдущий и следующий месяцы
 
+# иконки майка: активная/неактивная
 # Размеры диалогового окна
 # Активна или не активна кнопка Back
 
@@ -85,7 +76,7 @@ class LoginScreen(Screen):
     pass
 
 
-class AddTaskScreen(Screen):
+class NewTaskScreen(Screen):
     pass
 
 
@@ -110,17 +101,6 @@ def start_calendar_fill(app):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
         formatting_label(app=app, day=n + 1, label_day_id=str(n + week_day) , direction='ok')
-        # label_id = app.root.ids["event_calendar_screen"].ids[str(n + week_day) + 'l']
-
-        # day_events = 0
-        # form_day = app.formatted_date(EventCalendarScreen.month, n + 1)
-        # for event in app.events_list:
-        #     if event['date'] == form_day:
-        #         day_events += 1
-        # # отмечаем на календаре события
-        # label_id.text = f'{day_events} ev'
-        # if day_events > 0:
-        #     label_id.background_color = (222 / 255, 121 / 255, 65 / 255, 1)
 
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
@@ -193,12 +173,12 @@ def formatting_label(app, day, label_day_id, direction):
             label_id.background_color = (24/255, 171/255, 21/255, 1)
 
 
-
 class MainApp(MDApp):
     previous_screen = 'home_screen'
     user_id = 1
     # эвент, с которым сейчас работаем
     operating_event = ''
+    operating_task = ''
     # отбор по дате
     date_sort = None
 
@@ -232,6 +212,7 @@ class MainApp(MDApp):
 
             # заполняем эвенты TODO нужно ли это здесь?
             self.events_filling(sort=None)
+            self.tasks_filling(sort=None)
             # start_calendar_fill(self)
 
         except Exception:
@@ -240,8 +221,177 @@ class MainApp(MDApp):
     def change_screen(self, screen_name):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
+# ___________________________________Todo list________________________________________________________________________
 
-    # ___________________________________Event calendar________________________________________________________________________
+    def save_new_task(self):
+        description = self.root.ids["new_task_screen"].ids["task_description"].text
+
+        # проверяем заполнение полей
+        if description == '':
+            self.root.ids["new_task_screen"].ids["task_info_label"].text = "Please fill in the description field"
+        else:
+            # Отправляем данные в firebase
+            task_data_for_load = {'description': description, 'status': 'active'}
+            if self.operating_task == '':
+                # requests.post присваивает запросу ключ
+                new_task_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
+                    % (self.local_id, self.id_token), data=json.dumps(task_data_for_load))
+            # если эвент уже существует, то меняем
+            else:
+                edit_task_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (self.local_id, self.operating_event, self.id_token), data=json.dumps(task_data_for_load))
+                self.operating_task = ''
+
+            self.clear_new_task_screen()
+            self.change_screen("todolist_screen")
+
+    def clear_new_task_screen(self):
+        self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
+        self.root.ids["new_task_screen"].ids["task_description"].text = ''
+
+    # заполняет экран заданий
+    def tasks_filling(self, sort):
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
+        data = json.loads(result.content.decode())
+        # BoxLayout в events_screen
+        tasks_box_layout = self.root.ids['todolist_screen'].ids['tasks_layout']
+        # словарь словарей
+        tasks = data['tasks']
+        # ключи событий
+        tasks_keys = tasks.keys()
+
+        # Сортировка событий
+        tasks_list = []
+        # добавляем в словарь второго порядка поле с ключами
+        for task_key in tasks_keys:
+            tasks[task_key]['task_key'] = str(task_key)
+            tasks_list.append(tasks[task_key])
+        tasks_list = sorted(tasks_list, key=lambda x: (x['status'], ''),
+                             reverse=False)
+        # self.events_list = events_list
+        # Заполнение
+        active = 0
+        inactive = 0
+        for task in tasks_list:
+            if sort is None:
+                layout_for_task = FloatLayout()
+                # добавляем в активные или не активные события
+                if task['status'] == 'active':
+                    active += 1
+                    description = Label(text=task['description'], size_hint=(.8, .4),
+                                        pos_hint={"top": .7, "left": .5})
+
+                    edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
+                                              pos_hint={"top": 1, "right": 1})
+                    but_edit_callback = partial(self.edit_task, task['task_key'])
+                    edit_button.bind(on_release=but_edit_callback)
+
+                    copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                                              pos_hint={"top": .75, "right": 1})
+                    but_copy_callback = partial(self.copy_task, task['task_key'])
+                    copy_button.bind(on_release=but_copy_callback)
+
+                    done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+                                              pos_hint={"top": .5, "right": 1})
+                    but_done_callback = partial(self.done_task, task['task_key'])
+                    done_button.bind(on_release=but_done_callback)
+
+                    delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                                pos_hint={"top": .25, "right": 1})
+                    but_delete_callback = partial(self.delete_task, task['task_key'])
+                    delete_button.bind(on_release=but_delete_callback)
+
+                    layout_for_task.add_widget(description)
+                    layout_for_task.add_widget(edit_button)
+                    layout_for_task.add_widget(copy_button)
+                    layout_for_task.add_widget(done_button)
+                    layout_for_task.add_widget(delete_button)
+                    tasks_box_layout.add_widget(layout_for_task)
+                # elif event['status'] == 'inactive':
+                #     inactive += 1
+                #     title = Label(text=event['title'], size_hint=(.8, .3),
+                #                   pos_hint={"top": 1, "left": .5})
+                #     description = Label(text=event['description'], size_hint=(.8, .4),
+                #                         pos_hint={"top": .7, "left": .5})
+                #     date = Label(text=event['date'], size_hint=(.4, .3),
+                #                  pos_hint={"top": .3, "left": .5})
+                #     time = Label(text=event['time'], size_hint=(.4, .3),
+                #                  pos_hint={"top": .3, "right": .8})
+                #
+                #     copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+                #                               pos_hint={"top": .9, "right": 1})
+                #     but_copy_callback = partial(self.copy_event, event['event_key'])
+                #     copy_button.bind(on_release=but_copy_callback)
+                #
+                #     delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                #                                 pos_hint={"top": .3, "right": 1})
+                #     but_delete_callback = partial(self.delete_event, event['event_key'])
+                #     delete_button.bind(on_release=but_delete_callback)
+                #     layout_for_event.add_widget(title)
+                #     layout_for_event.add_widget(description)
+                #     layout_for_event.add_widget(date)
+                #     layout_for_event.add_widget(time)
+                #     layout_for_event.add_widget(copy_button)
+                #     layout_for_event.add_widget(delete_button)
+                #     inactive_events_box_layout.add_widget(layout_for_event)
+
+
+        # # Если нет эвентов в списке
+        # if active == 0:
+        #     l = Label(text='You have no scheduled events', font_size='20sp')
+        #     events_box_layout.add_widget(l)
+        # if inactive == 0:
+        #     l = Label(text='You have no completed events', font_size='20sp')
+        #     inactive_events_box_layout.add_widget(l)
+
+    def edit_task(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                edit_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.operating_task = arg
+                self.fill_new_event_screen(edit_task_request)
+
+    def copy_task(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                copy_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.fill_new_event_screen(copy_task_request)
+
+    def done_task(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                edit_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.operating_task = arg
+                self.fill_new_task_screen(edit_task_request)
+                self.create_modal_window(name='Done!', label="It's finished?", command='patch')
+
+    def delete_task(self, *args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                get_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (self.local_id, arg, self.id_token))
+                self.operating_task = arg
+                self.create_modal_window(name='Delete!', label='Delete task!?', command='delete')
+                self.fill_new_task_screen(get_task_request)
+
+    def fill_new_task_screen(self, task_request):
+        task_data = json.loads(task_request.content.decode())
+        self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
+        self.root.ids["new_task_screen"].ids["task_description"].text = task_data['description']
+        self.change_screen('new_task_screen')
+
+
+# ___________________________________Event calendar________________________________________________________________________
 
     def month_back(self):
         EventCalendarScreen.month -= 1
