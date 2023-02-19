@@ -1,4 +1,8 @@
 from pprint import pprint
+
+from PIL.ImageQt import rgb
+from kivy import utils
+from kivy.graphics import Color, Rectangle
 from kivy.uix.popup import Popup
 from my_base import MyBase
 from kivymd.app import MDApp
@@ -20,6 +24,9 @@ import json
 
 # TODO
 # Отображать на календаре дни с эвентами
+# - изменения цвета
+# - обновление при создание нового эвента
+# - предыдущий и следующий месяцы
 
 # Размеры диалогового окна
 # Активна или не активна кнопка Back
@@ -100,6 +107,19 @@ def start_calendar_fill(app):
     for n in range(month_days):
         # в списке объекту Button по индексам дням присваиваются числа в поле text
         app.root.ids["event_calendar_screen"].ids[str(n + week_day)].text = str(n + 1)
+        day_events = 0
+        form_day = app.formatted_date(EventCalendarScreen.month, n+1)
+        for event in app.events_list:
+            if event['date'] == form_day:
+                day_events += 1
+        app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].text = f'{day_events} ev'
+        with app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].canvas:
+            Color(rgba=utils.get_color_from_hex('#FF4500'))
+            Rectangle(pos=app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].pos,
+                      size=app.root.ids["event_calendar_screen"].ids[str(n + week_day)+ 'l'].size)
+
+
+
         if EventCalendarScreen.year == EventCalendarScreen.now.year and EventCalendarScreen.month == \
                 EventCalendarScreen.now.month and n == EventCalendarScreen.now.day:
             # красим сегодняшний день в зеленый
@@ -119,7 +139,6 @@ def start_calendar_fill(app):
         app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].text = str(back_month_days - n)
         app.root.ids["event_calendar_screen"].ids[str(week_day - n - 1)].background_color = \
             (193 / 255, 198 / 255, 198 / 255, 1)
-        # days[week_day - n - 1]['fg'] = 'gray'
     # заполняем дни следующего месяца
     for n in range(6 * 7 - month_days - week_day):
         app.root.ids["event_calendar_screen"].ids[str(week_day + month_days + n)].text = str(n + 1)
@@ -138,6 +157,8 @@ class MainApp(MDApp):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        # список эвентов
+        self.events_list = None
         # Для Date picker
         self.date = AKDatePicker(callback=self.callback)
 
@@ -189,6 +210,19 @@ class MainApp(MDApp):
             EventCalendarScreen.year += 1
         start_calendar_fill(self)
 
+    def formatted_date(self, current_month, day):
+        # форматируем дату и время
+        if len(str(current_month)) < 2:
+            formatted_month = '0' + str(current_month)
+        else:
+            formatted_month = current_month
+        if len(str(day)) < 2:
+            formatted_day = '0' + str(day)
+        else:
+            formatted_day = day
+        return f"{EventCalendarScreen.year}-{formatted_month}-{formatted_day}"
+
+
     # после нажатия на дату отправляет на предыдущий экран
     def calendar_button_release(self, day, name):
         current_month = EventCalendarScreen.month
@@ -203,16 +237,7 @@ class MainApp(MDApp):
         elif int(name) >= week_day + month_days:
             current_month += 1
 
-        # форматируем дату и время
-        if len(str(current_month)) < 2:
-            formatted_month = '0' + str(current_month)
-        else:
-            formatted_month = current_month
-        if len(str(day)) < 2:
-            formatted_day = '0' + str(day)
-        else:
-            formatted_day = day
-        formatted_date = f"{EventCalendarScreen.year}-{formatted_month}-{formatted_day}"
+        formatted_date = self.formatted_date(current_month, day)
 
         if self.previous_screen == "new_event_screen":
             # проверяем, чтобы дата была не меньше текущей
@@ -258,7 +283,7 @@ class MainApp(MDApp):
             events_list.append(events[event_key])
         events_list =  sorted(events_list, key=lambda x: datetime.datetime.strptime(x['date_time'], '%Y-%m-%d %H:%M:%S'),
                               reverse=False)
-
+        self.events_list = events_list
         # Заполнение
         active = 0
         inactive = 0

@@ -6,7 +6,7 @@
             rows: 1
             cols: 2
             pos_hint: {"top": .8, "left": 1}
-            size_hint: 1, .4
+            size_hint: 1, .3
             ImageButton:
                 source: "icons/calendar.jpg"
                 on_release:
@@ -20,8 +20,8 @@
         GridLayout:
             rows: 1
             cols: 2
-            pos_hint: {"bottom": 1, "left": 1}
-            size_hint: 1, .4
+            pos_hint: {"top": .5, "left": 1}
+            size_hint: 1, .3
             ImageButton:
                 source: "icons/todolist.png"
                 on_release:
@@ -32,3 +32,17 @@
                 on_release:
                     app.change_screen('projects_screen')
                     app.previous_screen = "home_screen"
+        BoxLayout:
+            size_hint: 1, .4
+            pos_hint: {"bottom": 1, "left": 1}
+            orientation: 'vertical'
+            ImageButton:
+                source: "icons/mic.jpg"
+                on_press:
+                    print("Start recording")
+                on_release:
+                    print("Stop recording")
+            ImageButton:
+                source: "icons/notes.jpg"
+                on_release:
+                    print("Open notes")
