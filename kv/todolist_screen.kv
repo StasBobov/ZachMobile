@@ -17,18 +17,22 @@
                 on_release:
                     app.change_screen(app.previous_screen)
                     app.previous_screen = "todolist_screen"
-            LabelButton:
+            Label:
                 id: sort_tasks
                 name: 'sort_tasks'
-                text: 'Show outstanding'
+                text: 'All tasks LABEL'
+            LabelButton:
+                text: 'Show all BUTTON'
                 on_release:
-                    print('Sort tasks')
-            ImageButton:
-                size_hint: .5, .5
-                pos_hint: {"top": .7, "right": .1}
-                source: "icons/krest.png"
+                    app.task_sort = None
+                    app.refill_tasks_layouts(app.task_sort)
+                    sort_tasks.text = 'All tasks LABEL'
+            LabelButton:
+                text: 'Show outstanding BUTTON'
                 on_release:
-                    print('Do not sort tasks')
+                    app.task_sort = 'Actual'
+                    app.refill_tasks_layouts(app.task_sort)
+                    sort_tasks.text = 'Actual tasks LABEL'
             ImageButton:
                 size_hint: .5, .5
                 pos_hint: {"top": .7, "right": .5}
