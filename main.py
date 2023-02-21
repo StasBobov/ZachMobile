@@ -13,6 +13,7 @@ from kivy.uix.boxlayout import BoxLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 from functools import partial
 import calendar
+import constants
 import datetime
 import requests
 import json
@@ -69,6 +70,14 @@ class TodolistScreen(Screen):
 
 
 class ProjectsScreen(Screen):
+    pass
+
+
+class ArchiveProjectsScreen(Screen):
+    pass
+
+
+class OneProjectScreen(Screen):
     pass
 
 
@@ -196,7 +205,8 @@ class MainApp(MDApp):
                 refresh_token = f.read()
 
             self.id_token, self.local_id = self.my_base.exchange_refresh_token(refresh_token)
-
+            constants.LOCAL_ID = self.local_id
+            constants.ID_TOKEN = self.id_token
             self.result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
 
@@ -217,7 +227,7 @@ class MainApp(MDApp):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
-    # ___________________________________Todo list________________________________________________________________________
+# ___________________________________Todo list________________________________________________________________________
 
     def save_new_task(self):
         description = self.root.ids["new_task_screen"].ids["task_description"].text

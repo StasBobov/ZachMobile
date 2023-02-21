@@ -1,4 +1,4 @@
-<ProjectsScreen>:
+<ArchiveProjectsScreen>:
     FloatLayout:
         BoxLayout:
             orientation: 'horizontal'
@@ -20,15 +20,15 @@
             LabelButton:
                 text: 'Your current projects BUTTON'
                 on_release:
-                    print('To the projects tab')
+                    app.change_screen('projects_screen')
             LabelButton:
                 text: 'Project archive BUTTON'
                 on_release:
-                    app.change_screen('archive_projects_screen')
+                    print('To the archive tab')
             LabelButton:
                 text: 'New Project BUTTON'
                 on_release:
-                    app.change_screen('one_project_screen')
+                    print('Create new project')
         ScrollView:
             pos_hint: {"top": .8, "right": 1}
             size_hint: 1, .7
