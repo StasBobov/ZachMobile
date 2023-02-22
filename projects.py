@@ -47,17 +47,17 @@ def save_project():
         refill_projects_screen()
 
 
-def fill_one_project_screen(event_request):
+def fill_one_project_screen(project_request):
     app = App.get_running_app()
 
-    event_data = json.loads(event_request.content.decode())
-    if event_data['status'] == 'archive':
+    project_data = json.loads(project_request.content.decode())
+    if project_data['status'] == 'archive':
         app.previous_screen = 'archive_projects_screen'
     else:
         app.previous_screen = 'projects_screen'
     app.root.ids["one_project_screen"].ids["info_label"].text = ''
-    app.root.ids["one_project_screen"].ids["title"].text = event_data['title']
-    app.root.ids["one_project_screen"].ids["description"].text = event_data['description']
+    app.root.ids["one_project_screen"].ids["title"].text = project_data['title']
+    app.root.ids["one_project_screen"].ids["description"].text = project_data['description']
     app.change_screen('one_project_screen')
 
 
@@ -73,19 +73,6 @@ def supplement_save():
             f'{app.root.ids["one_project_screen"].ids["description"].text}\n- ' \
             f'{app.root.ids["supplement_screen"].ids["addition"].text}'
         app.change_screen("one_project_screen")
-
-    # project_box_layout = app.root.ids['one_project_screen'].ids['one_project_layout']
-    # layout_for_note = FloatLayout()
-    # note = TextInput(hint_text='add new note', size_hint=(.9, 1),
-    #                  pos_hint={"top": 1, "left": 1})
-    # delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.1, .3),
-    #                             pos_hint={"top": .5, "right": 1})
-    # # but_delete_callback = partial(self.delete_event, event['event_key'])
-    # # delete_button.bind(on_release=print(app.root.ids['one_project_screen'].ids[str(field_id) + 'f']))
-    #
-    # layout_for_note.add_widget(note)
-    # layout_for_note.add_widget(delete_button)
-    # project_box_layout.add_widget(layout_for_note)
 
 
 def clear_supplement_screen():
@@ -113,7 +100,40 @@ def edit_project(*args):
             fill_one_project_screen(edit_project_request)
 
 
-def modal_project_window(self, name, label, command):
+def move_to_archive(*args):
+    for arg in args:
+         if arg.__class__ != ImageButton:
+            edit_project_request = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+            Project.operating_project = arg
+            fill_one_project_screen(edit_project_request)
+            modal_project_window(name='Remove!', label="Remove project to archive?", command='patch_to')
+
+
+def move_from_archive(*args):
+    for arg in args:
+         if arg.__class__ != ImageButton:
+            edit_project_request = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+            Project.operating_project = arg
+            fill_one_project_screen(edit_project_request)
+            modal_project_window(name='Restore!', label="Restore project from archive?", command='patch_from')
+
+
+def delete_project(*args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                get_project_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                Project.operating_project = arg
+                modal_project_window(name='Delete!', label='Delete this project!?', command='delete')
+                fill_one_project_screen(get_project_request)
+
+
+def modal_project_window(name, label, command):
     app = App.get_running_app()
     # Создаём модальное окно
     bl = BoxLayout(orientation='vertical')
@@ -138,13 +158,17 @@ def modal_project_window(self, name, label, command):
     # чтобы перенести в выполненные/удалить
     def yes(*args):
         popup.dismiss()
-        if command == 'patch':
+        if command == 'patch_to':
             move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
                 % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
+        elif command == 'patch_from':
+            move_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'active'}))
         elif command == 'delete':
             delete_project_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
                 % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN))
         refill_projects_screen()
         app.change_screen(app.previous_screen)
@@ -163,7 +187,7 @@ def fill_projects_screen():
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
     data = json.loads(result.content.decode())
 
-    # GreenLayout в events_screen
+    # GreenLayout в projects_screen
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
     archive_projects_layout = app.root.ids['archive_projects_screen'].ids['archive_projects_layout']
 
@@ -189,83 +213,63 @@ def fill_projects_screen():
                               pos_hint={"top": 1, "left": .5})
                 description = Label(text=project['description'], size_hint=(.8, .4),
                                     pos_hint={"top": .7, "left": .5})
+
                 edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
                                           pos_hint={"top": 1, "right": 1})
                 but_edit_callback = partial(edit_project, project['project_key'])
                 edit_button.bind(on_release=but_edit_callback)
 
                 move_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
-                                          pos_hint={"top": .5, "right": 1})
+                                          pos_hint={"top": .7, "right": 1})
                 but_move_callback = partial(move_to_archive, project['project_key'])
                 move_button.bind(on_release=but_move_callback)
-                #
-                # delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                #                             pos_hint={"top": .25, "right": 1})
-                # but_delete_callback = partial(self.delete_event, event['event_key'])
-                # delete_button.bind(on_release=but_delete_callback)
+
+                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                            pos_hint={"top": .4, "right": 1})
+                but_delete_callback = partial(delete_project, project['project_key'])
+                delete_button.bind(on_release=but_delete_callback)
+
                 layout_for_project.add_widget(title)
                 layout_for_project.add_widget(description)
                 layout_for_project.add_widget(edit_button)
                 layout_for_project.add_widget(move_button)
-                # layout_for_event.add_widget(delete_button)
+                layout_for_project.add_widget(delete_button)
                 projects_layout.add_widget(layout_for_project)
-    #             elif event['status'] == 'inactive':
-    #                 inactive += 1
-    #                 title = Label(text=event['title'], size_hint=(.8, .3),
-    #                               pos_hint={"top": 1, "left": .5})
-    #                 description = Label(text=event['description'], size_hint=(.8, .4),
-    #                                     pos_hint={"top": .7, "left": .5})
-    #                 date = Label(text=event['date'], size_hint=(.4, .3),
-    #                              pos_hint={"top": .3, "left": .5})
-    #                 time = Label(text=event['time'], size_hint=(.4, .3),
-    #                              pos_hint={"top": .3, "right": .8})
-    #
-    #                 copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
-    #                                           pos_hint={"top": .9, "right": 1})
-    #                 but_copy_callback = partial(self.copy_event, event['event_key'])
-    #                 copy_button.bind(on_release=but_copy_callback)
-    #
-    #                 delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-    #                                             pos_hint={"top": .3, "right": 1})
-    #                 but_delete_callback = partial(self.delete_event, event['event_key'])
-    #                 delete_button.bind(on_release=but_delete_callback)
-    #                 layout_for_event.add_widget(title)
-    #                 layout_for_event.add_widget(description)
-    #                 layout_for_event.add_widget(date)
-    #                 layout_for_event.add_widget(time)
-    #                 layout_for_event.add_widget(copy_button)
-    #                 layout_for_event.add_widget(delete_button)
-    #                 inactive_events_box_layout.add_widget(layout_for_event)
-    #
-    #     # Если нет эвентов в списке
-    #     if active == 0:
-    #         l = Label(text='You have no scheduled events', font_size='20sp')
-    #         events_box_layout.add_widget(l)
-    #     if inactive == 0:
-    #         l = Label(text='You have no completed events', font_size='20sp')
-    #         inactive_events_box_layout.add_widget(l)
-    # else:
-    #     l = Label(text='You have no scheduled events', font_size='20sp')
-    #     events_box_layout.add_widget(l)
-    #     l = Label(text='You have no completed events', font_size='20sp')
-    #     inactive_events_box_layout.add_widget(l)
-    # # заполняем календарь
-    # start_calendar_fill(self)
+            elif project['status'] == 'inactive':
+                archive += 1
+                title = Label(text=project['title'], size_hint=(.8, .3),
+                              pos_hint={"top": 1, "left": .5})
+                description = Label(text=project['description'], size_hint=(.8, .4),
+                                    pos_hint={"top": .7, "left": .5})
 
+                move_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+                                          pos_hint={"top": .7, "right": 1})
+                but_move_callback = partial(move_from_archive, project['project_key'])
+                move_button.bind(on_release=but_move_callback)
 
-def move_to_archive(self, *args):
-    print(args)
-    for arg in args:
-        print(arg)
-        if arg.__class__ != ImageButton:
-            print('I am here')
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            Project.operating_event = arg
-            print('I am here')
-            fill_one_project_screen(edit_project_request)
-            modal_project_window(name='Remove!', label="Remove project to archive?", command='patch')
+                delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+                                            pos_hint={"top": .4, "right": 1})
+                but_delete_callback = partial(delete_project, project['project_key'])
+                delete_button.bind(on_release=but_delete_callback)
+
+                layout_for_project.add_widget(title)
+                layout_for_project.add_widget(description)
+                layout_for_project.add_widget(move_button)
+                layout_for_project.add_widget(delete_button)
+                archive_projects_layout.add_widget(layout_for_project)
+    #
+        # Если нет эвентов в списке
+        if active == 0:
+            l = Label(text='You have not projectss', font_size='20sp')
+            projects_layout.add_widget(l)
+        if archive == 0:
+            l = Label(text='Your archive is empty', font_size='20sp')
+            archive_projects_layout.add_widget(l)
+    else:
+        l = Label(text='You have not projects', font_size='20sp')
+        projects_layout.add_widget(l)
+        l = Label(text='Your archive is empty', font_size='20sp')
+        archive_projects_layout.add_widget(l)
 
 
 # перезаполняет layouts с эвентами
@@ -275,7 +279,6 @@ def refill_projects_screen():
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
     archive_projects_layout = app.root.ids['archive_projects_screen'].ids['archive_projects_layout']
     for w in projects_layout.walk():
-        print(w.__class__)
         # Удаляем только FloatLayout
         if w.__class__ == FloatLayout or w.__class__ == Label:
             projects_layout.remove_widget(w)
