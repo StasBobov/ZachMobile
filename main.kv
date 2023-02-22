@@ -6,6 +6,7 @@
 #:include kv/projects_screen.kv
 #:include kv/archive_projects_screen.kv
 #:include kv/one_project_screen.kv
+#:include kv/supplement_screen.kv
 #:include kv/login_screen.kv
 #:include kv/new_task_screen.kv
 #:include kv/event_calendar_screen.kv
@@ -68,6 +69,9 @@ GridLayout:
             OneProjectScreen:
                 name: "one_project_screen"
                 id: one_project_screen
+            SupplementScreen:
+                name: "supplement_screen"
+                id: supplement_screen
             EventCalendarScreen:
                 name: "event_calendar_screen"
                 id: event_calendar_screen

@@ -29,12 +29,13 @@
                 text: 'New Project BUTTON'
                 on_release:
                     app.change_screen('one_project_screen')
+                    app.previous_screen = 'projects_screen'
         ScrollView:
             pos_hint: {"top": .8, "right": 1}
             size_hint: 1, .7
             GridLayout:
-                id: tasks_layout
-                name: "tasks_layout"
+                id: projects_layout
+                name: "projects_layout"
                 cols: 1
                 size_hint_y: None
                 height: self.minimum_height

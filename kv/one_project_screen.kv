@@ -18,13 +18,17 @@
                 size_hint: .3, .5
                 on_release:
                     root.dismiss()
-                    print('Back to a previous screen')
+                    app.change_screen('projects_screen')
+                    projects.clear_one_project_screen()
+
             Button:
                 text: 'Stay'
                 font_size: 12
                 size_hint: .3, .5
                 on_release:
                     root.dismiss()
+
+
 
 <OneProjectScreen>:
     FloatLayout:
@@ -39,7 +43,7 @@
             pos_hint: {"top": 1, "right": .25}
             source: "icons/back.png"
             on_release:
-                Factory.MyPopup().open()
+                Factory.ProjectPopup().open()
 
         ScrollView:
             pos_hint: {"top": .85, "right": 1}
@@ -58,19 +62,23 @@
                     Rectangle:
                         size: self.size
                         pos: self.pos
-                TextInput:
-                    id: title
-                    name: "title"
-                    hint_text: 'title'
-                    multiline: False
-                    size_hint: .8, .1
-                    pos_hint: {'top': 1, 'right': .9}
-                TextInput:
-                    id: description
-                    name: "description"
-                    hint_text: 'description'
-                    size_hint: .8, .2
-                    pos_hint: {'top': .85, 'right': .9}
+                BoxLayout:
+                    pos_hint: {"top": 1, "right": 1}
+                    size_hint: 1, .3
+                    orientation: "vertical"
+                    TextInput:
+                        id: title
+                        name: "title"
+                        hint_text: 'title'
+                        multiline: False
+                        size_hint: 1, .1
+                        pos_hint: {'top': 1, 'right': 1}
+                    TextInput:
+                        id: description
+                        name: "description"
+                        hint_text: 'description'
+                        size_hint: 1, .2
+                        pos_hint: {'top': .85, 'right': 1}
         BoxLayout:
             pos_hint: {"top": .2, "right": 1}
             size_hint: 1, .2
@@ -87,16 +95,12 @@
                     pos_hint: {"top": 1, "right": .5}
                     source: "icons/add_field.png"
                     on_release:
-                        projects.Project.add_field(projects.Project.operating_project)
-                ImageButton:
-                    size_hint: 1, 1
-                    pos_hint: {"top": 1, "right": .5}
-                    source: "icons/add_file.png"
-                    on_release:
-                        print('add file')
+                        app.change_screen('supplement_screen')
+                        app.previous_screen = "one_project_screen"
                 ImageButton:
                     size_hint: 1, 1
                     pos_hint: {"top": 1, "right": .5}
                     source: "icons/save.png"
                     on_release:
-                        projects.Project.save_project(projects.Project.operating_project)
+                        projects.save_project()
+                        projects.clear_one_project_screen()

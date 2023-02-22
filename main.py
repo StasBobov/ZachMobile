@@ -12,6 +12,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 from functools import partial
+import projects
 import calendar
 import constants
 import datetime
@@ -78,6 +79,10 @@ class ArchiveProjectsScreen(Screen):
 
 
 class OneProjectScreen(Screen):
+    pass
+
+
+class SupplementScreen(Screen):
     pass
 
 
@@ -218,6 +223,7 @@ class MainApp(MDApp):
             # заполняем эвенты
             self.events_filling(sort=None)
             self.tasks_filling(sort=self.task_sort)
+            projects.fill_projects_screen()
             # start_calendar_fill(self)
 
         except Exception:
