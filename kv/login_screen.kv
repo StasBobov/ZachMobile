@@ -31,7 +31,20 @@
                     pos: self.pos
             text: '[u]Sign up![/u]'
             markup: True
-            size_hint: .8, .1
-            pos_hint: {'top': .2, 'right': .9}
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'left': .8}
             on_release:
                 app.my_base.sign_up(login_email.text, login_password.text)
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: '[u]Log in![/u]'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'right': .8}
+            on_release:
+                app.my_base.login(login_email.text, login_password.text)
