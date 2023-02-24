@@ -205,29 +205,31 @@ class MainApp(MDApp):
 
     def on_start(self):
 
+        # При старте пытаемся открыть файл с токеном
         try:
             with open('refresh_token.txt', 'r') as f:
                 refresh_token = f.read()
-
+            # Если получается, то сразу грузим данные
             self.id_token, self.local_id = self.my_base.exchange_refresh_token(refresh_token)
             constants.LOCAL_ID = self.local_id
             constants.ID_TOKEN = self.id_token
             self.result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
 
+            # и переходим на Home screen
             data = json.loads(self.result.content.decode())
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
 
-            # заполняем эвенты
+            # заполняем всю херню
             self.events_filling(sort=None)
             self.tasks_filling(sort=self.task_sort)
             projects.fill_projects_screen()
-            # start_calendar_fill(self)
 
+        # Если нет, то остаёмся на экране логина
         except Exception:
-            pass
+            print('Not Ok')
 
     def change_screen(self, screen_name):
         screen_manager = self.root.ids["screen_manager"]

@@ -1,5 +1,6 @@
 import json
 from functools import partial
+import logging
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
@@ -10,9 +11,15 @@ from own_classes import ImageButton
 import requests
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.textinput import TextInput
-
 import constants
+
+
+log = logging.getLogger('projects_loger')
+log.setLevel(logging.DEBUG)
+fh = logging.FileHandler("zach.log", 'a', 'utf-8')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+log.addHandler(fh)
 
 
 class Project:
@@ -31,153 +38,25 @@ def save_project():
     else:
         if Project.operating_project == '':
             # requests.post присваивает запросу ключ
+            log.info('Sends new project data to the server')
             new_project_request = requests.post(
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects.json?auth=%s'
                 % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(project_data_for_load))
         # если эвент уже существует, то меняем
+            log.info(new_project_request)
 
         else:
+            log.info('Sends patch project data to the server')
             edit_project_request = requests.patch(
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
                 % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN),
                 data=json.dumps(project_data_for_load))
+            log.info('Sends patch project data to the server')
+            log.info(edit_project_request)
             Project.operating_project = ''
         clear_one_project_screen()
         app.change_screen("projects_screen")
         refill_projects_screen()
-
-
-def fill_one_project_screen(project_request):
-    app = App.get_running_app()
-
-    project_data = json.loads(project_request.content.decode())
-    if project_data['status'] == 'archive':
-        app.previous_screen = 'archive_projects_screen'
-    else:
-        app.previous_screen = 'projects_screen'
-    app.root.ids["one_project_screen"].ids["info_label"].text = ''
-    app.root.ids["one_project_screen"].ids["title"].text = project_data['title']
-    app.root.ids["one_project_screen"].ids["description"].text = project_data['description']
-    app.change_screen('one_project_screen')
-
-
-def supplement_save():
-    app = App.get_running_app()
-    addition = app.root.ids["supplement_screen"].ids["addition"].text
-
-    # проверяем заполнение поля
-    if addition == '':
-        app.root.ids["supplement_screen"].ids["info_label"].text = "You have not completed the addendum"
-    else:
-        app.root.ids["one_project_screen"].ids["description"].text = \
-            f'{app.root.ids["one_project_screen"].ids["description"].text}\n- ' \
-            f'{app.root.ids["supplement_screen"].ids["addition"].text}'
-        app.change_screen("one_project_screen")
-
-
-def clear_supplement_screen():
-    app = App.get_running_app()
-
-    app.root.ids["supplement_screen"].ids["addition"].text = ''
-    app.root.ids["supplement_screen"].ids["info_label"].text = ''
-
-
-def clear_one_project_screen():
-    app = App.get_running_app()
-
-    app.root.ids["one_project_screen"].ids["title"].text = ''
-    app.root.ids["one_project_screen"].ids["description"].text = ''
-    app.root.ids["one_project_screen"].ids["info_label"].text = ''
-
-
-def edit_project(*args):
-    for arg in args:
-        if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
-
-
-def move_to_archive(*args):
-    for arg in args:
-         if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
-            modal_project_window(name='Remove!', label="Remove project to archive?", command='patch_to')
-
-
-def move_from_archive(*args):
-    for arg in args:
-         if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
-            modal_project_window(name='Restore!', label="Restore project from archive?", command='patch_from')
-
-
-def delete_project(*args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
-                get_project_request = requests.get(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-                Project.operating_project = arg
-                modal_project_window(name='Delete!', label='Delete this project!?', command='delete')
-                fill_one_project_screen(get_project_request)
-
-
-def modal_project_window(name, label, command):
-    app = App.get_running_app()
-    # Создаём модальное окно
-    bl = BoxLayout(orientation='vertical')
-    l = Label(text=label, font_size=12)
-    bl.add_widget(l)
-    bl2 = BoxLayout(orientation='horizontal')
-    but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
-    but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
-    bl2.add_widget(but_no)
-    bl2.add_widget(but_yes)
-    bl.add_widget(bl2)
-    popup = Popup(title=name, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
-                  auto_dismiss=False)
-
-    # усли не будешь менять статус
-    def no(*args):
-        popup.dismiss()
-        app.change_screen(app.previous_screen)
-        clear_one_project_screen()
-        Project.operating_project = ''
-
-    # чтобы перенести в выполненные/удалить
-    def yes(*args):
-        popup.dismiss()
-        if command == 'patch_to':
-            move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-        elif command == 'patch_from':
-            move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'active'}))
-        elif command == 'delete':
-            delete_project_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN))
-        refill_projects_screen()
-        app.change_screen(app.previous_screen)
-        clear_one_project_screen()
-        Project.operating_project = ''
-
-    but_no.bind(on_press=no)
-    but_yes.bind(on_press=yes)
-    popup.open()
 
 
 def fill_projects_screen():
@@ -186,6 +65,7 @@ def fill_projects_screen():
     result = requests.get(
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
     data = json.loads(result.content.decode())
+    log.debug(f'Get app projects data from the server {result}')
 
     # GreenLayout в projects_screen
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
@@ -286,4 +166,152 @@ def refill_projects_screen():
         if w.__class__ == FloatLayout or w.__class__ == Label:
             archive_projects_layout.remove_widget(w)
     fill_projects_screen()
+
+
+def fill_one_project_screen(project_request):
+    app = App.get_running_app()
+
+    project_data = json.loads(project_request.content.decode())
+    if project_data['status'] == 'archive':
+        app.previous_screen = 'archive_projects_screen'
+    else:
+        app.previous_screen = 'projects_screen'
+    app.root.ids["one_project_screen"].ids["info_label"].text = ''
+    app.root.ids["one_project_screen"].ids["title"].text = project_data['title']
+    app.root.ids["one_project_screen"].ids["description"].text = project_data['description']
+    app.change_screen('one_project_screen')
+
+
+def supplement_save():
+    app = App.get_running_app()
+    addition = app.root.ids["supplement_screen"].ids["addition"].text
+
+    # проверяем заполнение поля
+    if addition == '':
+        app.root.ids["supplement_screen"].ids["info_label"].text = "You have not completed the addendum"
+    else:
+        app.root.ids["one_project_screen"].ids["description"].text = \
+            f'{app.root.ids["one_project_screen"].ids["description"].text}\n- ' \
+            f'{app.root.ids["supplement_screen"].ids["addition"].text}'
+        app.change_screen("one_project_screen")
+        log.debug('Entering new data into the project')
+
+
+
+def clear_supplement_screen():
+    app = App.get_running_app()
+
+    app.root.ids["supplement_screen"].ids["addition"].text = ''
+    app.root.ids["supplement_screen"].ids["info_label"].text = ''
+
+
+def clear_one_project_screen():
+    app = App.get_running_app()
+
+    app.root.ids["one_project_screen"].ids["title"].text = ''
+    app.root.ids["one_project_screen"].ids["description"].text = ''
+    app.root.ids["one_project_screen"].ids["info_label"].text = ''
+
+
+def edit_project(*args):
+    for arg in args:
+        if arg.__class__ != ImageButton:
+            edit_project_request = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+            log.debug('Get data from server for edit project')
+
+            Project.operating_project = arg
+            fill_one_project_screen(edit_project_request)
+
+
+def move_to_archive(*args):
+    for arg in args:
+         if arg.__class__ != ImageButton:
+            edit_project_request = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+            log.debug('Get data from server for move project to archive')
+            Project.operating_project = arg
+            fill_one_project_screen(edit_project_request)
+            modal_project_window(name='Remove!', label="Remove project to archive?", command='patch_to')
+
+
+def move_from_archive(*args):
+    for arg in args:
+         if arg.__class__ != ImageButton:
+            edit_project_request = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+            log.debug('Get data from server for move project from archive')
+            Project.operating_project = arg
+            fill_one_project_screen(edit_project_request)
+            modal_project_window(name='Restore!', label="Restore project from archive?", command='patch_from')
+
+
+def delete_project(*args):
+        for arg in args:
+            if arg.__class__ != ImageButton:
+                get_project_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for delete project')
+                Project.operating_project = arg
+                modal_project_window(name='Delete!', label='Delete this project!?', command='delete')
+                fill_one_project_screen(get_project_request)
+
+
+def modal_project_window(name, label, command):
+    app = App.get_running_app()
+    # Создаём модальное окно
+    bl = BoxLayout(orientation='vertical')
+    l = Label(text=label, font_size=12)
+    bl.add_widget(l)
+    bl2 = BoxLayout(orientation='horizontal')
+    but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
+    but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
+    bl2.add_widget(but_no)
+    bl2.add_widget(but_yes)
+    bl.add_widget(bl2)
+    popup = Popup(title=name, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+                  auto_dismiss=False)
+
+    # усли не будешь менять статус
+    def no(*args):
+        popup.dismiss()
+        app.change_screen(app.previous_screen)
+        clear_one_project_screen()
+        Project.operating_project = ''
+
+    # чтобы перенести в выполненные/удалить
+    def yes(*args):
+        popup.dismiss()
+        if command == 'patch_to':
+            log.info('Patch data on server')
+            move_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
+            log.info(move_project_request)
+        elif command == 'patch_from':
+            log.info('Patch data on server')
+            move_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'active'}))
+            log.info(move_project_request)
+        elif command == 'delete':
+            log.info('Delete data on server')
+            delete_project_request = requests.delete(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN))
+            log.info(delete_project_request)
+        refill_projects_screen()
+        app.change_screen(app.previous_screen)
+        clear_one_project_screen()
+        Project.operating_project = ''
+
+    but_no.bind(on_press=no)
+    but_yes.bind(on_press=yes)
+    popup.open()
+
+
 
