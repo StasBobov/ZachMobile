@@ -1,3 +1,5 @@
+#:import tasks tasks
+
 <TodolistScreen>:
     FloatLayout:
         BoxLayout:
@@ -24,14 +26,14 @@
             LabelButton:
                 text: 'Show all BUTTON'
                 on_release:
-                    app.task_sort = None
-                    app.refill_tasks_layouts(app.task_sort)
+                    tasks.Task.task_sort = None
+                    tasks.refill_tasks_layouts(tasks.Task.task_sort)
                     sort_tasks.text = 'All tasks LABEL'
             LabelButton:
                 text: 'Show outstanding BUTTON'
                 on_release:
-                    app.task_sort = 'Actual'
-                    app.refill_tasks_layouts(app.task_sort)
+                    tasks.Task.task_sort = 'Actual'
+                    tasks.refill_tasks_layouts(tasks.Task.task_sort)
                     sort_tasks.text = 'Actual tasks LABEL'
             ImageButton:
                 size_hint: .5, .5

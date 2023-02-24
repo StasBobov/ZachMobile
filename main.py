@@ -12,6 +12,7 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 from functools import partial
+import tasks
 import projects
 import calendar
 import constants
@@ -183,10 +184,10 @@ class MainApp(MDApp):
     user_id = 1
     # эвент, с которым сейчас работаем
     operating_event = ''
-    operating_task = ''
+    # operating_task = ''
     # отбор по дате
     date_sort = None
-    task_sort = None
+    # task_sort = None
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -224,7 +225,8 @@ class MainApp(MDApp):
 
             # заполняем всю херню
             self.events_filling(sort=None)
-            self.tasks_filling(sort=self.task_sort)
+            # self.tasks_filling(sort=self.task_sort)
+            tasks.tasks_filling(sort=tasks.Task.task_sort)
             projects.fill_projects_screen()
 
         # Если нет, то остаёмся на экране логина
@@ -237,217 +239,217 @@ class MainApp(MDApp):
 
 # ___________________________________Todo list________________________________________________________________________
 
-    def save_new_task(self):
-        description = self.root.ids["new_task_screen"].ids["task_description"].text
-        # проверяем заполнение полей
-        if description == '':
-            self.root.ids["new_task_screen"].ids["task_info_label"].text = "Please fill in the description field"
-        else:
-            # Отправляем данные в firebase
-            task_data_for_load = {'description': description, 'status': 'active'}
-            if self.operating_task == '':
-                # requests.post присваивает запросу ключ
-                new_task_request = requests.post(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
-                    % (self.local_id, self.id_token), data=json.dumps(task_data_for_load))
-            # если task уже существует, то меняем
-            else:
-                edit_task_request = requests.patch(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, self.operating_task, self.id_token), data=json.dumps(task_data_for_load))
-                self.operating_task = ''
-
-            self.clear_new_task_screen()
-            self.refill_tasks_layouts(sort=self.task_sort)
-            self.change_screen("todolist_screen")
-
-    def clear_new_task_screen(self):
-        self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
-        self.root.ids["new_task_screen"].ids["task_description"].text = ''
-
-    # заполняет экран заданий
-    def tasks_filling(self, sort):
-        result = requests.get(
-            'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
-        data = json.loads(result.content.decode())
-        # BoxLayout в events_screen
-        tasks_box_layout = self.root.ids['todolist_screen'].ids['tasks_layout']
-        # Проверка на наличие заданий
-        if 'tasks' in data:
-            # словарь словарей
-            tasks = data['tasks']
-            # ключи событий
-            tasks_keys = tasks.keys()
-            # Сортировка заданий
-            tasks_list = []
-            # добавляем в словарь второго порядка поле с ключами
-            for task_key in tasks_keys:
-                tasks[task_key]['task_key'] = str(task_key)
-                tasks_list.append(tasks[task_key])
-            tasks_list = sorted(tasks_list, key=lambda x: (x['status'], ''),
-                                reverse=False)
-            # self.events_list = events_list
-            # Заполнение
-            active = 0
-            inactive = 0
-            for task in tasks_list:
-                # добавляем в активные или не активные события
-                if task['status'] == 'active':
-                    layout_for_task = FloatLayout()
-                    active += 1
-                    description = Label(text=task['description'], size_hint=(.8, .4),
-                                        pos_hint={"top": .7, "left": .5})
-
-                    edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
-                                              pos_hint={"top": 1, "right": 1})
-                    but_edit_callback = partial(self.edit_task, task['task_key'])
-                    edit_button.bind(on_release=but_edit_callback)
-
-                    copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
-                                              pos_hint={"top": .75, "right": 1})
-                    but_copy_callback = partial(self.copy_task, task['task_key'])
-                    copy_button.bind(on_release=but_copy_callback)
-
-                    done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
-                                              pos_hint={"top": .5, "right": 1})
-                    but_done_callback = partial(self.done_task, task['task_key'])
-                    done_button.bind(on_release=but_done_callback)
-
-                    delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                                                pos_hint={"top": .25, "right": 1})
-                    but_delete_callback = partial(self.delete_task, task['task_key'])
-                    delete_button.bind(on_release=but_delete_callback)
-
-                    layout_for_task.add_widget(description)
-                    layout_for_task.add_widget(edit_button)
-                    layout_for_task.add_widget(copy_button)
-                    layout_for_task.add_widget(done_button)
-                    layout_for_task.add_widget(delete_button)
-                    tasks_box_layout.add_widget(layout_for_task)
-                elif task['status'] == 'inactive':
-                    if sort is None:
-                        layout_for_task = FloatLayout()
-                        inactive += 1
-                        description = Label(markup=True, text=f"[s]{task['description']}[/s]", size_hint=(.8, .4),
-                                            pos_hint={"top": .7, "left": .5})
-
-                        copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
-                                                  pos_hint={"top": .75, "right": 1})
-                        but_copy_callback = partial(self.copy_task, task['task_key'])
-                        copy_button.bind(on_release=but_copy_callback)
-
-                        delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
-                                                    pos_hint={"top": .25, "right": 1})
-                        but_delete_callback = partial(self.delete_task, task['task_key'])
-                        delete_button.bind(on_release=but_delete_callback)
-
-                        layout_for_task.add_widget(description)
-                        layout_for_task.add_widget(copy_button)
-                        layout_for_task.add_widget(delete_button)
-                        tasks_box_layout.add_widget(layout_for_task)
-
-            # Если нет активных заданий в списке
-            if active == 0 and sort == 'Actual':
-                l = Label(text='You have no scheduled tasks', font_size='20sp')
-                tasks_box_layout.add_widget(l)
-        # Нет никаких заданий в списке
-        else:
-            l = Label(text='You have no any tasks', font_size='20sp')
-            tasks_box_layout.add_widget(l)
-
-    def edit_task(self, *args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
-                edit_task_request = requests.get(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, arg, self.id_token))
-                self.operating_task = arg
-                self.fill_new_task_screen(edit_task_request)
-
-    def copy_task(self, *args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
-                copy_task_request = requests.get(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, arg, self.id_token))
-                self.fill_new_task_screen(copy_task_request)
-
-    def done_task(self, *args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
-                edit_task_request = requests.get(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, arg, self.id_token))
-                self.operating_task = arg
-                self.fill_new_task_screen(edit_task_request)
-                self.modal_task_window(name='Done!', label="It's finished?", command='patch')
-
-    def delete_task(self, *args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
-                get_task_request = requests.get(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, arg, self.id_token))
-                self.operating_task = arg
-                self.modal_task_window(name='Delete!', label='Delete task!?', command='delete')
-                self.fill_new_task_screen(get_task_request)
-
-    def fill_new_task_screen(self, task_request):
-        self.previous_screen = 'todolist_screen'
-        task_data = json.loads(task_request.content.decode())
-        self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
-        self.root.ids["new_task_screen"].ids["task_description"].text = task_data['description']
-        self.change_screen('new_task_screen')
-
-    # перезаполняет layouts с эвентами
-    def refill_tasks_layouts(self, sort):
-        tasks_box_layout = self.root.ids['todolist_screen'].ids['tasks_layout']
-        for w in tasks_box_layout.walk():
-            # Удаляем только FloatLayout
-            if w.__class__ == FloatLayout or w.__class__ == Label:
-                tasks_box_layout.remove_widget(w)
-        self.tasks_filling(sort=sort)
-
-    def modal_task_window(self, name, label, command):
-        # Создаём модальное окно
-        bl = BoxLayout(orientation='vertical')
-        l = Label(text=label, font_size=12)
-        bl.add_widget(l)
-        bl2 = BoxLayout(orientation='horizontal')
-        but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
-        but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
-        bl2.add_widget(but_no)
-        bl2.add_widget(but_yes)
-        bl.add_widget(bl2)
-        popup = Popup(title=name, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
-                      auto_dismiss=False)
-
-        # усли не будешь менять статус
-        def no(*args):
-            popup.dismiss()
-            self.change_screen(self.previous_screen)
-            self.clear_new_task_screen()
-            self.operating_task = ''
-
-        # чтобы перенести в выполненные/удалить
-        def yes(*args):
-            popup.dismiss()
-            if command == 'patch':
-                done_task_request = requests.patch(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, self.operating_task, self.id_token), data=json.dumps({'status': 'inactive'}))
-            elif command == 'delete':
-                delete_task_request = requests.delete(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (self.local_id, self.operating_task, self.id_token))
-            self.refill_tasks_layouts(sort=self.task_sort)
-            self.change_screen(self.previous_screen)
-            self.clear_new_task_screen()
-            self.operating_task = ''
-
-        but_no.bind(on_press=no)
-        but_yes.bind(on_press=yes)
-        popup.open()
+    # def save_new_task(self):
+    #     description = self.root.ids["new_task_screen"].ids["task_description"].text
+    #     # проверяем заполнение полей
+    #     if description == '':
+    #         self.root.ids["new_task_screen"].ids["task_info_label"].text = "Please fill in the description field"
+    #     else:
+    #         # Отправляем данные в firebase
+    #         task_data_for_load = {'description': description, 'status': 'active'}
+    #         if self.operating_task == '':
+    #             # requests.post присваивает запросу ключ
+    #             new_task_request = requests.post(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
+    #                 % (self.local_id, self.id_token), data=json.dumps(task_data_for_load))
+    #         # если task уже существует, то меняем
+    #         else:
+    #             edit_task_request = requests.patch(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, self.operating_task, self.id_token), data=json.dumps(task_data_for_load))
+    #             self.operating_task = ''
+    #
+    #         self.clear_new_task_screen()
+    #         self.refill_tasks_layouts(sort=self.task_sort)
+    #         self.change_screen("todolist_screen")
+    #
+    # def clear_new_task_screen(self):
+    #     self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
+    #     self.root.ids["new_task_screen"].ids["task_description"].text = ''
+    #
+    # # заполняет экран заданий
+    # def tasks_filling(self, sort):
+    #     result = requests.get(
+    #         'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
+    #     data = json.loads(result.content.decode())
+    #     # BoxLayout в events_screen
+    #     tasks_box_layout = self.root.ids['todolist_screen'].ids['tasks_layout']
+    #     # Проверка на наличие заданий
+    #     if 'tasks' in data:
+    #         # словарь словарей
+    #         tasks = data['tasks']
+    #         # ключи событий
+    #         tasks_keys = tasks.keys()
+    #         # Сортировка заданий
+    #         tasks_list = []
+    #         # добавляем в словарь второго порядка поле с ключами
+    #         for task_key in tasks_keys:
+    #             tasks[task_key]['task_key'] = str(task_key)
+    #             tasks_list.append(tasks[task_key])
+    #         tasks_list = sorted(tasks_list, key=lambda x: (x['status'], ''),
+    #                             reverse=False)
+    #         # self.events_list = events_list
+    #         # Заполнение
+    #         active = 0
+    #         inactive = 0
+    #         for task in tasks_list:
+    #             # добавляем в активные или не активные события
+    #             if task['status'] == 'active':
+    #                 layout_for_task = FloatLayout()
+    #                 active += 1
+    #                 description = Label(text=task['description'], size_hint=(.8, .4),
+    #                                     pos_hint={"top": .7, "left": .5})
+    #
+    #                 edit_button = ImageButton(source="icons/edit.png", size_hint=(.2, .2),
+    #                                           pos_hint={"top": 1, "right": 1})
+    #                 but_edit_callback = partial(self.edit_task, task['task_key'])
+    #                 edit_button.bind(on_release=but_edit_callback)
+    #
+    #                 copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+    #                                           pos_hint={"top": .75, "right": 1})
+    #                 but_copy_callback = partial(self.copy_task, task['task_key'])
+    #                 copy_button.bind(on_release=but_copy_callback)
+    #
+    #                 done_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
+    #                                           pos_hint={"top": .5, "right": 1})
+    #                 but_done_callback = partial(self.done_task, task['task_key'])
+    #                 done_button.bind(on_release=but_done_callback)
+    #
+    #                 delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+    #                                             pos_hint={"top": .25, "right": 1})
+    #                 but_delete_callback = partial(self.delete_task, task['task_key'])
+    #                 delete_button.bind(on_release=but_delete_callback)
+    #
+    #                 layout_for_task.add_widget(description)
+    #                 layout_for_task.add_widget(edit_button)
+    #                 layout_for_task.add_widget(copy_button)
+    #                 layout_for_task.add_widget(done_button)
+    #                 layout_for_task.add_widget(delete_button)
+    #                 tasks_box_layout.add_widget(layout_for_task)
+    #             elif task['status'] == 'inactive':
+    #                 if sort is None:
+    #                     layout_for_task = FloatLayout()
+    #                     inactive += 1
+    #                     description = Label(markup=True, text=f"[s]{task['description']}[/s]", size_hint=(.8, .4),
+    #                                         pos_hint={"top": .7, "left": .5})
+    #
+    #                     copy_button = ImageButton(source="icons/copy.jpg", size_hint=(.2, .2),
+    #                                               pos_hint={"top": .75, "right": 1})
+    #                     but_copy_callback = partial(self.copy_task, task['task_key'])
+    #                     copy_button.bind(on_release=but_copy_callback)
+    #
+    #                     delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
+    #                                                 pos_hint={"top": .25, "right": 1})
+    #                     but_delete_callback = partial(self.delete_task, task['task_key'])
+    #                     delete_button.bind(on_release=but_delete_callback)
+    #
+    #                     layout_for_task.add_widget(description)
+    #                     layout_for_task.add_widget(copy_button)
+    #                     layout_for_task.add_widget(delete_button)
+    #                     tasks_box_layout.add_widget(layout_for_task)
+    #
+    #         # Если нет активных заданий в списке
+    #         if active == 0 and sort == 'Actual':
+    #             l = Label(text='You have no scheduled tasks', font_size='20sp')
+    #             tasks_box_layout.add_widget(l)
+    #     # Нет никаких заданий в списке
+    #     else:
+    #         l = Label(text='You have no any tasks', font_size='20sp')
+    #         tasks_box_layout.add_widget(l)
+    #
+    # def edit_task(self, *args):
+    #     for arg in args:
+    #         if arg.__class__ != ImageButton:
+    #             edit_task_request = requests.get(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, arg, self.id_token))
+    #             self.operating_task = arg
+    #             self.fill_new_task_screen(edit_task_request)
+    #
+    # def copy_task(self, *args):
+    #     for arg in args:
+    #         if arg.__class__ != ImageButton:
+    #             copy_task_request = requests.get(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, arg, self.id_token))
+    #             self.fill_new_task_screen(copy_task_request)
+    #
+    # def done_task(self, *args):
+    #     for arg in args:
+    #         if arg.__class__ != ImageButton:
+    #             edit_task_request = requests.get(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, arg, self.id_token))
+    #             self.operating_task = arg
+    #             self.fill_new_task_screen(edit_task_request)
+    #             self.modal_task_window(name='Done!', label="It's finished?", command='patch')
+    #
+    # def delete_task(self, *args):
+    #     for arg in args:
+    #         if arg.__class__ != ImageButton:
+    #             get_task_request = requests.get(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, arg, self.id_token))
+    #             self.operating_task = arg
+    #             self.modal_task_window(name='Delete!', label='Delete task!?', command='delete')
+    #             self.fill_new_task_screen(get_task_request)
+    #
+    # def fill_new_task_screen(self, task_request):
+    #     self.previous_screen = 'todolist_screen'
+    #     task_data = json.loads(task_request.content.decode())
+    #     self.root.ids["new_task_screen"].ids["task_info_label"].text = ''
+    #     self.root.ids["new_task_screen"].ids["task_description"].text = task_data['description']
+    #     self.change_screen('new_task_screen')
+    #
+    # # перезаполняет layouts с эвентами
+    # def refill_tasks_layouts(self, sort):
+    #     tasks_box_layout = self.root.ids['todolist_screen'].ids['tasks_layout']
+    #     for w in tasks_box_layout.walk():
+    #         # Удаляем только FloatLayout
+    #         if w.__class__ == FloatLayout or w.__class__ == Label:
+    #             tasks_box_layout.remove_widget(w)
+    #     self.tasks_filling(sort=sort)
+    #
+    # def modal_task_window(self, name, label, command):
+    #     # Создаём модальное окно
+    #     bl = BoxLayout(orientation='vertical')
+    #     l = Label(text=label, font_size=12)
+    #     bl.add_widget(l)
+    #     bl2 = BoxLayout(orientation='horizontal')
+    #     but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
+    #     but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
+    #     bl2.add_widget(but_no)
+    #     bl2.add_widget(but_yes)
+    #     bl.add_widget(bl2)
+    #     popup = Popup(title=name, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+    #                   auto_dismiss=False)
+    #
+    #     # усли не будешь менять статус
+    #     def no(*args):
+    #         popup.dismiss()
+    #         self.change_screen(self.previous_screen)
+    #         self.clear_new_task_screen()
+    #         self.operating_task = ''
+    #
+    #     # чтобы перенести в выполненные/удалить
+    #     def yes(*args):
+    #         popup.dismiss()
+    #         if command == 'patch':
+    #             done_task_request = requests.patch(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, self.operating_task, self.id_token), data=json.dumps({'status': 'inactive'}))
+    #         elif command == 'delete':
+    #             delete_task_request = requests.delete(
+    #                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+    #                 % (self.local_id, self.operating_task, self.id_token))
+    #         self.refill_tasks_layouts(sort=self.task_sort)
+    #         self.change_screen(self.previous_screen)
+    #         self.clear_new_task_screen()
+    #         self.operating_task = ''
+    #
+    #     but_no.bind(on_press=no)
+    #     but_yes.bind(on_press=yes)
+    #     popup.open()
 
     # ___________________________________Event calendar________________________________________________________________________
 

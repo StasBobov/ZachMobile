@@ -28,7 +28,8 @@
             LabelButton:
                 text: 'New Project BUTTON'
                 on_release:
-                    print('Create new project')
+                    app.change_screen('one_project_screen')
+                    app.previous_screen = 'archive_projects_screen'
         ScrollView:
             pos_hint: {"top": .8, "right": 1}
             size_hint: 1, .7

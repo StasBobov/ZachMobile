@@ -51,7 +51,6 @@ def save_project():
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
                 % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN),
                 data=json.dumps(project_data_for_load))
-            log.info('Sends patch project data to the server')
             log.info(edit_project_request)
             Project.operating_project = ''
         clear_one_project_screen()
