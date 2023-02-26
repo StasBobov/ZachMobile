@@ -42,6 +42,12 @@
                 on_release:
                     app.change_screen('new_task_screen')
                     app.previous_screen = "todolist_screen"
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .3}
+                source: "icons/delete.jpg"
+                on_release:
+                    tasks.delete_all_completed_tasks()
         ScrollView:
             pos_hint: {"top": .8, "right": 1}
             size_hint: 1, .7

@@ -68,7 +68,7 @@ def tasks_filling(sort):
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
     log.debug(f'Get app task data from the server {result}')
     data = json.loads(result.content.decode())
-    # BoxLayout в events_screen
+
     tasks_box_layout = app.root.ids['todolist_screen'].ids['tasks_layout']
     # Проверка на наличие заданий
     if 'tasks' in data:
@@ -199,6 +199,29 @@ def delete_task(*args):
             fill_new_task_screen(get_task_request)
 
 
+def delete_all_completed_tasks(*args):
+    result = requests.get(
+        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+    log.debug(f'Get app task data from the server {result}')
+    data = json.loads(result.content.decode())
+    inactive_tasks = set()
+    if 'tasks' in data:
+        # словарь словарей
+        tasks = data['tasks']
+        # ключи словаря - идентификаторы в базе
+        task_keys = tasks.keys()
+        # проходим по значениям через ключи словаря
+        for task_key in task_keys:
+            if tasks[task_key]['status'] == 'inactive':
+                inactive_tasks.add(task_key)
+
+    if inactive_tasks:
+        modal_task_window(name='Delete all inactive tasks!!!', label='Delete all inactive task!!!?', command='delete_all',
+                          amount=inactive_tasks)
+    else:
+        pass
+
+
 def fill_new_task_screen(task_request):
     app = App.get_running_app()
 
@@ -221,7 +244,7 @@ def refill_tasks_layouts(sort):
     tasks_filling(sort=sort)
 
 
-def modal_task_window(name, label, command):
+def modal_task_window(name, label, command, amount=None):
     app = App.get_running_app()
 
     # Создаём модальное окно
@@ -259,6 +282,13 @@ def modal_task_window(name, label, command):
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
                 % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN))
             log.info(delete_task_request)
+        elif command == 'delete_all':
+            for task_key in amount:
+                log.info('Delete data on server')
+                delete_task_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
+                log.info(delete_task_request)
         refill_tasks_layouts(sort=Task.task_sort)
         app.change_screen(app.previous_screen)
         clear_new_task_screen()

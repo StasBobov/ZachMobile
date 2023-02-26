@@ -42,7 +42,16 @@
                     print("Start recording")
                 on_release:
                     print("Stop recording")
+        BoxLayout:
+            size_hint: 1, .4
+            pos_hint: {"bottom": 1, "left": 1}
+            orientation: 'horizontal'
             ImageButton:
                 source: "icons/notes.jpg"
                 on_release:
                     print("Open notes")
+            ImageButton:
+                source: "icons/shopping_list.png"
+                on_release:
+                    app.change_screen('shopping_list_screen')
+                    app.previous_screen = "home_screen"

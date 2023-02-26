@@ -1,5 +1,3 @@
-from pprint import pprint
-
 import requests
 import json
 from kivy.app import App
@@ -40,14 +38,14 @@ class MyBase:
 
     # При нажатии на кнопку Sign up
     def sign_up(self, email, password):
+        log.info('Try to sing up')
         app = App.get_running_app()
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + self.wak
         signup_payload = {"email": email, "password": password, "returnSecureToken": True}
         # Передаём в базу имейл и пассворд
         sign_up_request = requests.post(signup_url, data=signup_payload)
-
         sign_up_data = json.loads(sign_up_request.content.decode())
-        log.info(f'Try to sing up {sign_up_request} {sign_up_data}')
+        log.info(sign_up_request, sign_up_data)
 
         if sign_up_request.ok:
             refresh_token = sign_up_data['refreshToken']
@@ -62,6 +60,7 @@ class MyBase:
             my_data = '{"name": "", "lname": "", "email": ""}'
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
+            log.debug(f'Sending data to database {post_request}')
 
             event_calendar.events_filling(sort=None)
 
@@ -70,6 +69,7 @@ class MyBase:
             # показываем текст ошибки в лэйбле, если данные введены неверно
         if not sign_up_request.ok:
             error_data = json.loads(sign_up_request.content.decode())
+            log.error(f'{error_data} {sign_up_request}')
             error_message = error_data['error']['message']
             app.root.ids['login_screen'].ids['login_message'].text = error_message
 
@@ -77,6 +77,7 @@ class MyBase:
         app = App.get_running_app()
         try:
             login = auth.sign_in_with_email_and_password(email, password)
+            log.info('Successful login')
             refresh_token = login['refreshToken']
             localId = login['localId']
             idToken = login['idToken']  # authToken
@@ -90,7 +91,7 @@ class MyBase:
         except Exception as ex:
             error_dict = json.loads(ex.args[1])
             app.root.ids['login_screen'].ids['login_message'].text = error_dict['error']['message']
-
+            log.error(error_dict)
 
     def exchange_refresh_token(self, refresh_token):
         refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
@@ -99,5 +100,6 @@ class MyBase:
 
         local_id = refresh_req.json()['user_id']
         id_token = refresh_req.json()['id_token']
+        log.debug('Got user_id and id_token')
         return id_token, local_id
 
