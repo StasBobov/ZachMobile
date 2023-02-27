@@ -61,13 +61,13 @@
             LabelButton:
                 text: 'Create new shopping list BUTTON '
                 on_release:
-                    print('Create mew shopping screen')
+                    shopping_list.modal_delete_window(command='delete_with_added')
             ImageButton:
                 size_hint: .5, .5
                 pos_hint: {"top": .7, "right": .5}
                 source: "icons/delete.jpg"
                 on_release:
-                    print('delete shopping list')
+                    shopping_list.modal_delete_window(command='delete')
         ScrollView:
             pos_hint: {"top": .8, "right": 1}
             size_hint: 1, .7
