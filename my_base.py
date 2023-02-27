@@ -89,9 +89,14 @@ class MyBase:
 
             app.change_screen('home_screen')
         except Exception as ex:
-            error_dict = json.loads(ex.args[1])
-            app.root.ids['login_screen'].ids['login_message'].text = error_dict['error']['message']
+            try:
+                error_dict = json.loads(ex.args[1])
+                app.root.ids['login_screen'].ids['login_message'].text = error_dict['error']['message']
+            except Exception:
+                error_dict = ex
+                app.root.ids['login_screen'].ids['login_message'].text = 'Please heck your internet connection!'
             log.error(error_dict)
+
 
     def exchange_refresh_token(self, refresh_token):
         refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak

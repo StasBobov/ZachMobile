@@ -7,6 +7,8 @@ from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.textinput import TextInput
+
 from own_classes import ImageButton
 from functools import partial
 import constants
@@ -24,18 +26,11 @@ class Task:
     task_sort = None
 
 
-def save_new_task():
-    app = App.get_running_app()
-
-    description = app.root.ids["new_task_screen"].ids["task_description"].text
-    # проверяем заполнение полей
-    if description == '':
-        app.root.ids["new_task_screen"].ids["task_info_label"].text = "Please fill in the description field"
-    else:
-        # Отправляем данные в firebase
-        task_data_for_load = {'description': description, 'status': 'active'}
+def save_new_task(text):
+    if text:
+        task_data_for_load = {'description': text, 'status': 'active'}
         if Task.operating_task == '':
-            # requests.post присваивает запросу ключ
+        # requests.post присваивает запросу ключ
             log.info('Sends new task data to the server')
             new_task_request = requests.post(
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
@@ -49,26 +44,16 @@ def save_new_task():
                 % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN), data=json.dumps(task_data_for_load))
             Task.operating_task = ''
             log.info(edit_task_request)
-        clear_new_task_screen()
         refill_tasks_layouts(sort=Task.task_sort)
-        app.change_screen("todolist_screen")
-
-
-def clear_new_task_screen():
-    app = App.get_running_app()
-    app.root.ids["new_task_screen"].ids["task_info_label"].text = ''
-    app.root.ids["new_task_screen"].ids["task_description"].text = ''
 
 
 # заполняет экран заданий
 def tasks_filling(sort):
     app = App.get_running_app()
-
     result = requests.get(
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
     log.debug(f'Get app task data from the server {result}')
     data = json.loads(result.content.decode())
-
     tasks_box_layout = app.root.ids['todolist_screen'].ids['tasks_layout']
     # Проверка на наличие заданий
     if 'tasks' in data:
@@ -161,7 +146,7 @@ def edit_task(*args):
                 % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
             log.debug('Get data from server for edit task')
             Task.operating_task = arg
-            fill_new_task_screen(edit_task_request)
+            modal_edit_task_window(command='edit', task_request=edit_task_request, text='Edit task')
 
 
 def copy_task(*args):
@@ -171,7 +156,7 @@ def copy_task(*args):
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
                 % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
             log.debug('Get data from server for copy task')
-            fill_new_task_screen(copy_task_request)
+            modal_edit_task_window(command='copy', task_request=copy_task_request, text='Copy task')
 
 
 def done_task(*args):
@@ -181,10 +166,8 @@ def done_task(*args):
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
                 % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
             log.debug('Get data from server for make task done')
-
             Task.operating_task = arg
-            fill_new_task_screen(edit_task_request)
-            modal_task_window(name='Done!', label="It's finished?", command='patch')
+            modal_edit_task_window(command='done', task_request=edit_task_request, text='Task done?')
 
 
 def delete_task(*args):
@@ -195,8 +178,7 @@ def delete_task(*args):
                 % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
             log.debug('Get data from server for delete task')
             Task.operating_task = arg
-            modal_task_window(name='Delete!', label='Delete task!?', command='delete')
-            fill_new_task_screen(get_task_request)
+            modal_edit_task_window(command='delete', task_request=get_task_request, text='Delete this task?')
 
 
 def delete_all_completed_tasks(*args):
@@ -216,20 +198,10 @@ def delete_all_completed_tasks(*args):
                 inactive_tasks.add(task_key)
 
     if inactive_tasks:
-        modal_task_window(name='Delete all inactive tasks!!!', label='Delete all inactive task!!!?', command='delete_all',
+        modal_task_window(name='Delete all inactive tasks!!!', label='Delete all inactive task!!!?',
                           amount=inactive_tasks)
     else:
         pass
-
-
-def fill_new_task_screen(task_request):
-    app = App.get_running_app()
-
-    app.previous_screen = 'todolist_screen'
-    task_data = json.loads(task_request.content.decode())
-    app.root.ids["new_task_screen"].ids["task_info_label"].text = ''
-    app.root.ids["new_task_screen"].ids["task_description"].text = task_data['description']
-    app.change_screen('new_task_screen')
 
 
 # перезаполняет layouts с эвентами
@@ -244,9 +216,66 @@ def refill_tasks_layouts(sort):
     tasks_filling(sort=sort)
 
 
-def modal_task_window(name, label, command, amount=None):
-    app = App.get_running_app()
+def modal_edit_task_window(command, task_request, text):
+    task_data = json.loads(task_request.content.decode())
 
+    # Создаём модальное окно
+    bl = BoxLayout(orientation='vertical')
+    t_i = TextInput(text=task_data['description'], size_hint=  (1, .3),
+            pos_hint={'top': .85, 'right': 1})
+    bl.add_widget(t_i)
+    bl2 = BoxLayout(orientation='horizontal')
+    but_no = Button(text='Back without saving', font_size=12, size_hint=(.3, .5))
+    but_yes = Button(text=text, font_size=12, size_hint=(.3, .5))
+    bl2.add_widget(but_no)
+    bl2.add_widget(but_yes)
+    bl.add_widget(bl2)
+    popup = Popup(title=text, content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+                  auto_dismiss=False)
+
+    # если не сохранять
+    def no(*args):
+        popup.dismiss()
+
+    # чтобы изменить пункт
+    def yes(*args):
+        popup.dismiss()
+        if command == 'edit':
+            log.info('Patch data on server')
+            edit_task_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
+                data=json.dumps({'description': t_i.text}))
+            log.info(edit_task_request)
+        elif command == 'copy':
+            log.info('Sends new task data to the server')
+            new_task_request = requests.post(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'description': t_i.text, 'status': 'active'}))
+            log.info(new_task_request)
+        elif command == 'done':
+            log.info('Patch data on server')
+            done_task_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
+                data=json.dumps({'status': 'inactive'}))
+            log.info(done_task_request)
+        elif command == 'delete':
+            log.info('Delete data on server')
+            delete_task_request = requests.delete(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN))
+            log.info(delete_task_request)
+
+        refill_tasks_layouts(sort=Task.task_sort)
+        Task.operating_task = ''
+
+    but_no.bind(on_press=no)
+    but_yes.bind(on_press=yes)
+    popup.open()
+
+
+def modal_task_window(name, label, amount=None):
     # Создаём модальное окно
     bl = BoxLayout(orientation='vertical')
     l = Label(text=label, font_size=12)
@@ -263,36 +292,17 @@ def modal_task_window(name, label, command, amount=None):
     # усли не будешь менять статус
     def no(*args):
         popup.dismiss()
-        app.change_screen(app.previous_screen)
-        clear_new_task_screen()
-        Task.operating_task = ''
 
     # чтобы перенести в выполненные/удалить
     def yes(*args):
         popup.dismiss()
-        if command == 'patch':
-            log.info('Patch data on server')
-            done_task_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-            log.info(done_task_request)
-        elif command == 'delete':
+        for task_key in amount:
             log.info('Delete data on server')
             delete_task_request = requests.delete(
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN))
+                % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
             log.info(delete_task_request)
-        elif command == 'delete_all':
-            for task_key in amount:
-                log.info('Delete data on server')
-                delete_task_request = requests.delete(
-                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                    % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
-                log.info(delete_task_request)
         refill_tasks_layouts(sort=Task.task_sort)
-        app.change_screen(app.previous_screen)
-        clear_new_task_screen()
-        Task.operating_task = ''
 
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)

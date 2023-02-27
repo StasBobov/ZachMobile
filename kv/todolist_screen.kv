@@ -1,5 +1,35 @@
 #:import tasks tasks
 
+<TasksPopup@Popup>
+    auto_dismiss: False
+    size_hint: 0.4, 0.4
+    pos_hint: {"x": 0.2, "top": 0.9}
+    title: 'Add new task'
+    BoxLayout:
+        orientation: "vertical"
+        TextInput:
+            id: new_task
+            name: "new_task"
+            hint_text: 'description'
+            size_hint: 1, .3
+            pos_hint: {'top': .85, 'right': 1}
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                text: 'Back without saving'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+                    app.change_screen('todolist_screen')
+            Button:
+                text: 'Add'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    tasks.save_new_task(new_task.text)
+                    root.dismiss()
+
 <TodolistScreen>:
     FloatLayout:
         BoxLayout:
@@ -40,8 +70,7 @@
                 pos_hint: {"top": .7, "right": .5}
                 source: "icons/create_task.png"
                 on_release:
-                    app.change_screen('new_task_screen')
-                    app.previous_screen = "todolist_screen"
+                    Factory.TasksPopup().open()
             ImageButton:
                 size_hint: .5, .5
                 pos_hint: {"top": .7, "right": .3}

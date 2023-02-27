@@ -20,15 +20,15 @@ import json
 
 # TODO
 
+
 # Залогировать майн
-# Shoplist снизу справа
-# Сохранять контент в файле приложения
+# Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
 # восстановление пароля
 # Размеры диалогового окна
 # Активна или не активна кнопка Back
-
+# Сохранять контент в файле приложения ???
 
 class EventCalendarScreen(Screen):
     days = []
@@ -142,7 +142,8 @@ class MainApp(MDApp):
 
             # заполняем всю херню
             event_calendar.events_filling(sort=None)
-            shopping_list.shopping_list_filling(sort=None)
+            shopping_list.shopping_list_filling()
+            print('I am here')
             tasks.tasks_filling(sort=tasks.Task.task_sort)
             projects.fill_projects_screen()
 

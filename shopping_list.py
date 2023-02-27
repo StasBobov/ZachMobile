@@ -8,7 +8,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.textinput import TextInput
-
 from own_classes import ImageButton
 from functools import partial
 import constants
@@ -53,7 +52,6 @@ def save_new_purchase(text):
 
 def shopping_list_filling():
     app = App.get_running_app()
-
     # TODO здесь нужно будет добавить подгрузку с файла
     result = requests.get(
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
@@ -73,12 +71,14 @@ def shopping_list_filling():
         for purchase_key in purchase_keys:
             purchases[purchase_key]['purchase_key'] = str(purchase_key)
             purchase_list.append(purchases[purchase_key])
+
         purchase_list = sorted(purchase_list, key=lambda x: (x['status'], ''),
                             reverse=False)
         # Заполнение
         active = 0
         inactive = 0
         for purchase in purchase_list:
+
             # добавляем в активные или не активные события
             if purchase['status'] == 'active':
                 layout_for_purchase = FloatLayout()
@@ -255,7 +255,6 @@ def modal_edit_purchase_window(command, purchase_request, text):
 
 
 def modal_delete_window(command, *args):
-    app = App.get_running_app()
     if command == 'delete':
         text_label = 'Delete this shopping list?'
         text_popup = 'Delete this shopping list'
