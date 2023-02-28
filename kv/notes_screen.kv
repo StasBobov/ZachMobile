@@ -1,0 +1,46 @@
+<NotesScreen>:
+    FloatLayout:
+        BoxLayout:
+            orientation: 'horizontal'
+            size_hint: 1, .2
+            pos_hint: {"top": 1, "right": 1}
+            canvas:
+                Color:
+                    rgb: utils.get_color_from_hex("#FF0000")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/back.png"
+                on_release:
+                    app.change_screen(app.previous_screen)
+                    app.previous_screen = "notes_screen"
+            Label
+                text: 'Notes'
+            ImageButton:
+                size_hint: .5, .5
+                pos_hint: {"top": .7, "right": .5}
+                source: "icons/plus.png"
+                on_release:
+                    app.change_screen('one_note_screen')
+                    app.previous_screen = "notes_screen"
+        ScrollView:
+            pos_hint: {"top": .8, "right": 1}
+            size_hint: 1, .7
+            GridLayout:
+                id: notes_layout
+                name: "notes_layout"
+                cols: 1
+                size_hint_y: None
+                height: self.minimum_height
+                row_default_height: '100dp'
+                row_fource_default: True
+                canvas:
+                    Color:
+                        rgb: utils.get_color_from_hex("#A9A9A9")
+                    Rectangle:
+                        size: self.size
+                        pos: self.pos
+

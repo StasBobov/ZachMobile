@@ -66,7 +66,7 @@ def fill_projects_screen():
     data = json.loads(result.content.decode())
     log.debug(f'Get app projects data from the server {result}')
 
-    # GreenLayout в projects_screen
+    # GreedLayout в projects_screen
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
     archive_projects_layout = app.root.ids['archive_projects_screen'].ids['archive_projects_layout']
 
@@ -79,7 +79,6 @@ def fill_projects_screen():
         for project_key in projects_keys:
             projects[project_key]['project_key'] = str(project_key)
             projects_list.append(projects[project_key])
-            # self.events_list = events_list
             # Заполнение
             active = 0
             archive = 0
@@ -151,7 +150,7 @@ def fill_projects_screen():
         archive_projects_layout.add_widget(l)
 
 
-# перезаполняет layouts с эвентами
+# перезаполняет layouts с проектами
 def refill_projects_screen():
     app = App.get_running_app()
 
@@ -194,7 +193,6 @@ def supplement_save():
             f'{app.root.ids["supplement_screen"].ids["addition"].text}'
         app.change_screen("one_project_screen")
         log.debug('Entering new data into the project')
-
 
 
 def clear_supplement_screen():

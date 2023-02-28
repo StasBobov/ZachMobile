@@ -18,7 +18,7 @@
                 size_hint: .3, .5
                 on_release:
                     root.dismiss()
-                    app.change_screen('projects_screen')
+                    app.change_screen('notes_screen')
                     projects.clear_one_project_screen()
 
             Button:
@@ -103,4 +103,4 @@
                     source: "icons/save.png"
                     on_release:
                         projects.save_project()
-                        projects.clear_one_project_screen()
+

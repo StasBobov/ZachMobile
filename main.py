@@ -12,6 +12,7 @@ import tasks
 import event_calendar
 import shopping_list
 import projects
+import notes
 import constants
 import datetime
 import requests
@@ -20,7 +21,7 @@ import json
 
 # TODO
 
-
+# one_project проверить scrollview
 # Залогировать майн
 # Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
@@ -101,6 +102,13 @@ class ShoppingListScreen(Screen):
     pass
 
 
+class NotesScreen(Screen):
+    pass
+
+
+class OneNoteScreen(Screen):
+    pass
+
 
 
 class MainApp(MDApp):
@@ -110,8 +118,6 @@ class MainApp(MDApp):
         super().__init__(**kwargs)
         # список эвентов
         self.events_list = None
-        # сортировать невыполненные задания
-        self.task_sort = None
         # Для Date picker
         self.date = AKDatePicker(callback=self.callback)
 
@@ -143,8 +149,8 @@ class MainApp(MDApp):
             # заполняем всю херню
             event_calendar.events_filling(sort=None)
             shopping_list.shopping_list_filling()
-            print('I am here')
             tasks.tasks_filling(sort=tasks.Task.task_sort)
+            notes.fill_notes_screen()
             projects.fill_projects_screen()
 
             # Если нет, то остаёмся на экране логина

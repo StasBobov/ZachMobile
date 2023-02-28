@@ -49,7 +49,8 @@
             ImageButton:
                 source: "icons/notes.jpg"
                 on_release:
-                    print("Open notes")
+                    app.change_screen('notes_screen')
+                    app.previous_screen = "home_screen"
             ImageButton:
                 source: "icons/shopping_list.png"
                 on_release:

@@ -1,0 +1,78 @@
+#:import notes notes
+
+<NotePopup@Popup>
+    auto_dismiss: False
+    size_hint: 0.4, 0.4
+    pos_hint: {"x": 0.2, "top": 0.9}
+    title: 'Close without saving'
+    BoxLayout:
+        orientation: "vertical"
+        Label:
+            text: "Exit without saving?"
+            font_size: 12
+        BoxLayout:
+            orientation: "horizontal"
+            Button:
+                text: 'Do not save'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+                    app.change_screen('projects_screen')
+                    projects.clear_one_project_screen()
+
+            Button:
+                text: 'Stay'
+                font_size: 12
+                size_hint: .3, .5
+                on_release:
+                    root.dismiss()
+
+<OneNoteScreen>:
+    FloatLayout:
+        canvas:
+            Color:
+                rgb: utils.get_color_from_hex("#3983F2")
+            Rectangle:
+                size: self.size
+                pos: self.pos
+        ImageButton:
+            size_hint: .15, .15
+            pos_hint: {"top": 1, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                Factory.NotePopup().open()
+        BoxLayout:
+            pos_hint: {"top": .85, "right": 1}
+            size_hint: 1, .85
+            orientation: "vertical"
+            TextInput:
+                id: description
+                name: "description"
+                hint_text: 'note'
+                size_hint: 1, .55
+                pos_hint: {'top': .85, 'right': 1}
+            Label:
+                id: info_label
+                name: "info_label"
+                size_hint: 1, .1
+                pos_hint: {'top': .3, 'right': .9}
+            BoxLayout:
+                orientation: "horizontal"
+                pos_hint: {"top": .2, "right": 1}
+                size_hint: 1, .2
+                ImageButton:
+                    id: transfer
+                    name: 'transfer'
+                    size_hint: 1, 1
+                    pos_hint: {"top": 1, "right": .5}
+                    source: "icons/transfer.jpg"
+                    on_release:
+                        notes.dropdown_menu()
+                ImageButton:
+                    size_hint: 1, 1
+                    pos_hint: {"top": 1, "right": .5}
+                    source: "icons/save.png"
+                    on_release:
+                        notes.save_note()
+
