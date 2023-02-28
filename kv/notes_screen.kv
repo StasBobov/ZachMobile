@@ -24,6 +24,7 @@
                 pos_hint: {"top": .7, "right": .5}
                 source: "icons/plus.png"
                 on_release:
+                    notes.clear_one_note_screen()
                     app.change_screen('one_note_screen')
                     app.previous_screen = "notes_screen"
         ScrollView:

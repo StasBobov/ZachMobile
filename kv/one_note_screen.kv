@@ -18,8 +18,8 @@
                 size_hint: .3, .5
                 on_release:
                     root.dismiss()
-                    app.change_screen('projects_screen')
-                    projects.clear_one_project_screen()
+                    app.change_screen('notes_screen')
+                    notes.clear_one_note_screen()
 
             Button:
                 text: 'Stay'
@@ -68,7 +68,7 @@
                     pos_hint: {"top": 1, "right": .5}
                     source: "icons/transfer.jpg"
                     on_release:
-                        notes.dropdown_menu()
+                        notes.dropdown_menu(description.text)
                 ImageButton:
                     size_hint: 1, 1
                     pos_hint: {"top": 1, "right": .5}

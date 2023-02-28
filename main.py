@@ -1,4 +1,7 @@
 from pprint import pprint
+
+from kivymd.uix.menu import MDDropdownMenu
+
 from my_base import MyBase
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
@@ -7,6 +10,7 @@ from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.uix.label import Label
+from kivy.properties import ObjectProperty
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 import tasks
 import event_calendar
@@ -113,6 +117,7 @@ class OneNoteScreen(Screen):
 
 class MainApp(MDApp):
     previous_screen = 'home_screen'
+    # dropdown = ObjectProperty()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -152,6 +157,13 @@ class MainApp(MDApp):
             tasks.tasks_filling(sort=tasks.Task.task_sort)
             notes.fill_notes_screen()
             projects.fill_projects_screen()
+
+            # self.dropdown = MDDropdownMenu()
+            # self.dropdown.items.append(
+            #     {"viewclass": "MDMenuItem",
+            #      "text": "Create new event",
+            #      "callback": print('Create new event')}
+            # )
 
             # Если нет, то остаёмся на экране логина
         except Exception:
