@@ -1,7 +1,4 @@
 from pprint import pprint
-
-from kivymd.uix.menu import MDDropdownMenu
-
 from my_base import MyBase
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDDatePicker, MDTimePicker
@@ -10,7 +7,6 @@ from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
 from kivy.uix.button import ButtonBehavior
 from kivy.uix.image import Image
 from kivy.uix.label import Label
-from kivy.properties import ObjectProperty
 from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 import tasks
 import event_calendar
@@ -25,6 +21,8 @@ import json
 
 # TODO
 
+# почему постоянно зависает?
+# диалоговое окно, что записалось или нет
 # notes / transfer project не прокручивается скролл
 # one_project проверить scrollview
 # Залогировать майн
