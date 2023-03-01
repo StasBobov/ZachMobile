@@ -9,7 +9,7 @@ from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 from kivy.uix.scrollview import ScrollView
 
-from own_classes import ImageButton
+from own_classes import ImageButton, LabelButton
 import requests
 from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
@@ -17,17 +17,11 @@ import constants
 import tasks
 import shopping_list
 
-from kivy.properties import ObjectProperty
-
-from kivy.lang import Builder
 from kivy.metrics import dp
 from kivy.properties import StringProperty
 
-from kivymd.app import MDApp
-from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.list import IRightBodyTouch, OneLineAvatarIconListItem, OneLineIconListItem
+from kivymd.uix.list import OneLineIconListItem
 from kivymd.uix.menu import MDDropdownMenu
-
 
 log = logging.getLogger('notes_loger')
 log.setLevel(logging.DEBUG)
@@ -40,15 +34,6 @@ log.addHandler(fh)
 class Note:
     operating_note = ''
 
-# dropdown = ObjectProperty()
-
-
-# dropdown = MDDropdownMenu()
-# dropdown.items.append(
-#     {"viewclass": "MDMenuItem",
-#      "text": "Create new event",
-#      "callback": print('Create new event')}
-# )
 
 class IconListItem(OneLineIconListItem):
     icon = StringProperty()
@@ -69,7 +54,7 @@ def dropdown_menu(text):
                 "viewclass": "IconListItem",
                 "height": dp(54),
                 "on_release": lambda x='todo': transfer_to_todo_list(menu, text)},
-        {
+            {
                 "text": "Add to shoplist",
                 "icon": "icons/plus.png",
                 "viewclass": "IconListItem",
@@ -83,10 +68,10 @@ def dropdown_menu(text):
                 "on_release": lambda x='project': transfer_to_project(menu, text)},
         ]
         menu = MDDropdownMenu(
-            caller = app.root.ids["one_note_screen"].ids["transfer"],
-            items = menu_items,
-            position = 'auto',
-            width_mult = 4,
+            caller=app.root.ids["one_note_screen"].ids["transfer"],
+            items=menu_items,
+            position='auto',
+            width_mult=4,
         )
         menu.open()
     else:
@@ -95,54 +80,61 @@ def dropdown_menu(text):
 
 def transfer_to_project(menu, text):
     app = App.get_running_app()
+    result = requests.get(
+        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+    data = json.loads(result.content.decode())
+    log.debug(f'Get app projects data from the server {result}')
+
+    # перекидываем заметку в проект
+    def one_click_add(key, description_text, adding_text, *args):
+        if key is None:
+            app.root.ids["one_project_screen"].ids["description"].text = adding_text
+            app.root.ids["one_project_screen"].ids["info_label"].text = ''
+            app.change_screen('one_project_screen')
+        else:
+            new_description_text = f'{description_text} \n {adding_text}'
+            log.info('Patch data on server')
+            transfer_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                % (constants.LOCAL_ID, key, constants.ID_TOKEN),
+                data=json.dumps({'description': new_description_text}))
+            log.info(transfer_project_request)
+            app.change_screen(app.previous_screen)
+        popup.dismiss()
+
     # Создаём модальное окно
     bl = BoxLayout(orientation='vertical')
     l = Label(text="Chose the project", font_size=12)
     bl.add_widget(l)
-    sw = ScrollView(pos_hint={"top": 1, "right": 1}, size_hint=(1, .7))
-    gl = GridLayout(cols=1, size_hint_y=None,row_default_height='100dp', row_fource_default=True)
+    sw = ScrollView(pos_hint={"top": 1, "right": 1}, size_hint=(1, 1))
+    gl = GridLayout(cols=1, spacing=10, size_hint_y=None, row_fource_default=True)
+    but_callback = partial(one_click_add, None, '', text)
+    lb = LabelButton(text='New project', on_release=but_callback)
+    gl.add_widget(lb)
+    # заполняем проекты
+    if 'projects' in data:
+        projects = data['projects']
+        for project in projects:
+            if projects[project]['status'] == 'active':
+                but_callback = partial(one_click_add, project, projects[project]['description'], text)
+                lb = LabelButton(text=projects[project]['title'], on_release=but_callback)
+                gl.add_widget(lb)
     sw.add_widget(gl)
 
-    # height: self.minimum_height
-
-    # canvas:
-    # Color:
-    # rgb: utils.get_color_from_hex("#A9A9A9")
-
-
-# Rectangle:
-# size: self.size
-# pos: self.pos
     bl2 = BoxLayout(orientation='horizontal')
-    but_no = Button(text='No!', font_size=12, size_hint=(.3, .5))
-    but_yes = Button(text='Yes!', font_size=12, size_hint=(.3, .5))
-    bl2.add_widget(but_no)
-    bl2.add_widget(but_yes)
+    but_cancel = Button(text='No!', font_size=12, size_hint=(.3, .5))
+    bl2.add_widget(but_cancel)
     bl.add_widget(sw)
     bl.add_widget(bl2)
-    popup = Popup(title="Transfer_to_project", content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+    popup = Popup(title="Transfer_to_project", content=bl, size_hint=(0.4, 0.6), pos_hint={"x": 0.2, "top": 0.9},
                   auto_dismiss=False)
 
     # усли не будешь менять статус
-    def no(*args):
+    def cancel(*args):
         popup.dismiss()
-    #
-    # # чтобы перенести в выполненные/удалить
-    # def yes(*args):
-    #     popup.dismiss()
-    #     for task_key in amount:
-    #         log.info('Delete data on server')
-    #         delete_task_request = requests.delete(
-    #             'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-    #             % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
-    #         log.info(delete_task_request)
-    #     refill_tasks_layouts(sort=Task.task_sort)
-    #
-    but_no.bind(on_press=no)
-    # but_yes.bind(on_press=yes)
+
+    but_cancel.bind(on_press=cancel)
     popup.open()
-    # app.root.ids["new_event_screen"].ids["description"].text = text
-    # app.change_screen('new_event_screen')
     menu.dismiss()
 
 
@@ -161,13 +153,9 @@ def transfer_to_todo_list(menu, text):
 
 
 def transfer_to_shopping_list(menu, text):
-    app = App.get_running_app()
     shopping_list.Purchase.operating_purchase = ''
     shopping_list.save_new_purchase(text)
     menu.dismiss()
-
-def first_item(text):
-    pass
 
 
 def save_note():
@@ -228,11 +216,6 @@ def fill_notes_screen():
                                       pos_hint={"top": 1, "right": 1})
             but_edit_callback = partial(edit_note, note['note_key'])
             edit_button.bind(on_release=but_edit_callback)
-            #
-            # move_button = ImageButton(source="icons/done.jpg", size_hint=(.2, .2),
-            #                           pos_hint={"top": .7, "right": 1})
-            # but_move_callback = partial(move_to_archive, project['project_key'])
-            # move_button.bind(on_release=but_move_callback)
 
             delete_button = ImageButton(source="icons/delete.jpg", size_hint=(.2, .2),
                                         pos_hint={"top": .4, "right": 1})
@@ -241,7 +224,7 @@ def fill_notes_screen():
 
             layout_for_note.add_widget(description)
             layout_for_note.add_widget(edit_button)
-    #         layout_for_project.add_widget(move_button)
+            #         layout_for_project.add_widget(move_button)
             layout_for_note.add_widget(delete_button)
             notes_layout.add_widget(layout_for_note)
     else:
@@ -324,23 +307,12 @@ def modal_note_window(name, label, command):
     # чтобы перенести в выполненные/удалить
     def yes(*args):
         popup.dismiss()
-        # if command == 'patch_to':
-        #     log.info('Patch data on server')
-        #     move_project_request = requests.patch(
-        #         'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-        #         % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-        #     log.info(move_project_request)
-        # elif command == 'patch_from':
-        #     log.info('Patch data on server')
-        #     move_project_request = requests.patch(
-        #         'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-        #         % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'active'}))
-        #     log.info(move_project_request)
+
         if command == 'delete':
             log.info('Delete data on server')
             delete_note_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN))
+            'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
+            % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN))
             log.info(delete_note_request)
         refill_notes_screen()
         clear_one_note_screen()

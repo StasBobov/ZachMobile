@@ -25,6 +25,7 @@ import json
 
 # TODO
 
+# notes / transfer project не прокручивается скролл
 # one_project проверить scrollview
 # Залогировать майн
 # Ожидание и request ошибки в приложениях
