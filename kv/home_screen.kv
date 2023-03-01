@@ -1,4 +1,6 @@
 #: import utils kivy.utils
+#:import voice voice
+
 <HomeScreen>:
     BoxLayout:
         orientation: 'vertical'
@@ -33,15 +35,16 @@
                     app.change_screen('projects_screen')
                     app.previous_screen = "home_screen"
         BoxLayout:
+            id: mike_button
+            name: 'mike_button'
             size_hint: 1, .4
             pos_hint: {"bottom": 1, "left": 1}
             orientation: 'vertical'
             ImageButton:
                 source: "icons/mic.jpg"
-                on_press:
-                    print("Start recording")
                 on_release:
-                    print("Stop recording")
+                    voice.record()
+                    print('change the icon')
         BoxLayout:
             size_hint: 1, .4
             pos_hint: {"bottom": 1, "left": 1}
