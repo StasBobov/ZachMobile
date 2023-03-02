@@ -177,6 +177,7 @@ def fill_one_project_screen(project_request):
     app.root.ids["one_project_screen"].ids["info_label"].text = ''
     app.root.ids["one_project_screen"].ids["title"].text = project_data['title']
     app.root.ids["one_project_screen"].ids["description"].text = project_data['description']
+    app.previous_screen = 'projects_screen'
     app.change_screen('one_project_screen')
 
 
