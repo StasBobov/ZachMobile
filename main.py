@@ -1,13 +1,10 @@
-from pprint import pprint
+import logging
+
 from my_base import MyBase
 from kivymd.app import MDApp
-from kivymd.uix.pickers import MDDatePicker, MDTimePicker
+from kivymd.uix.pickers import MDTimePicker
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen, NoTransition, CardTransition
-from kivy.uix.button import ButtonBehavior
-from kivy.uix.image import Image
-from kivy.uix.label import Label
-from kivymd_extensions.akivymd.uix.datepicker import AKDatePicker
 import tasks
 import event_calendar
 import shopping_list
@@ -18,20 +15,26 @@ import datetime
 import requests
 import json
 
+log = logging.getLogger('main_loger')
+log.setLevel(logging.DEBUG)
+fh = logging.FileHandler("zach.log", 'a', 'utf-8')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+log.addHandler(fh)
 
 # TODO
 
-# почему постоянно зависает?
-# notes / transfer project не прокручивается скролл
-# one_project проверить scrollview
-# Залогировать майн
+
 # Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
 # восстановление пароля
 # Размеры диалогового окна
+# почему постоянно зависает?
+# notes / transfer project не прокручивается скролл
 # Активна или не активна кнопка Back
 # Сохранять контент в файле приложения ???
+# Уведомления на электронную почту
 # какие пакеты не используются в приложении?
 
 class EventCalendarScreen(Screen):
@@ -54,14 +57,6 @@ class HomeScreen(Screen):
 
 
 class CalendarScreen(Screen):
-    pass
-
-
-class LabelButton(ButtonBehavior, Label):
-    pass
-
-
-class ImageButton(ButtonBehavior, Image):
     pass
 
 
@@ -113,17 +108,8 @@ class OneNoteScreen(Screen):
     pass
 
 
-
 class MainApp(MDApp):
     previous_screen = 'home_screen'
-    # dropdown = ObjectProperty()
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        # список эвентов
-        self.events_list = None
-        # Для Date picker
-        self.date = AKDatePicker(callback=self.callback)
 
     def build(self):
         self.theme_cls.theme_style = 'Light'
@@ -132,20 +118,16 @@ class MainApp(MDApp):
         Builder.load_file("main.kv")
 
     def on_start(self):
-
+        log.info('Start App')
         # При старте пытаемся открыть файл с токеном
         try:
             with open('refresh_token.txt', 'r') as f:
                 refresh_token = f.read()
+            log.info('refresh_token was read')
             # Если получается, то сразу грузим данные
-            self.id_token, self.local_id = self.my_base.exchange_refresh_token(refresh_token)
-            constants.LOCAL_ID = self.local_id
-            constants.ID_TOKEN = self.id_token
-            self.result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + self.local_id + '.json?auth=' + self.id_token)
+            constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
 
             # и переходим на Home screen
-            data = json.loads(self.result.content.decode())
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
@@ -157,15 +139,9 @@ class MainApp(MDApp):
             notes.fill_notes_screen()
             projects.fill_projects_screen()
 
-            # self.dropdown = MDDropdownMenu()
-            # self.dropdown.items.append(
-            #     {"viewclass": "MDMenuItem",
-            #      "text": "Create new event",
-            #      "callback": print('Create new event')}
-            # )
-
             # Если нет, то остаёмся на экране логина
         except Exception:
+            log.error('Not all functions not all features enabled on start')
             print('Not Ok')
 
     def change_screen(self, screen_name):
@@ -195,32 +171,32 @@ class MainApp(MDApp):
 
     # ___________________________________Date picker________________________________________________________________________
 
-    def show_date_picker(self):
-        # можно поставить любую конкретную даты в скобках
-        date_dialog = MDDatePicker()
-        # можно выбрать диапазон, возвращает список с датами
-        date_dialog = MDDatePicker(mode='range')
-        date_dialog.bind(on_save=self.on_save, on_cancel=self.date_on_cancel)
-        date_dialog.open()
-
-    # для date picker
-    def on_save(self, instance, value, date_range):
-        print(instance, value, date_range)
-
-    # для date picker
-    def date_on_cancel(self, instance, value):
-        # не понятно пока как добраться до атрибута text
-        pprint(dir(self.root.ids['calendar_screen']))
-        # print(self.root.ids.date_label.text)
-        # self.root.ids.date_label.text = 'Cancel'
-
-    # для date picker
-    def callback(self, date):
-        pass
-
-    # для date picker
-    def open_calendar(self):
-        self.date.open()
+    # def show_date_picker(self):
+    #     # можно поставить любую конкретную даты в скобках
+    #     date_dialog = MDDatePicker()
+    #     # можно выбрать диапазон, возвращает список с датами
+    #     date_dialog = MDDatePicker(mode='range')
+    #     date_dialog.bind(on_save=self.on_save, on_cancel=self.date_on_cancel)
+    #     date_dialog.open()
+    #
+    # # для date picker
+    # def on_save(self, instance, value, date_range):
+    #     print(instance, value, date_range)
+    #
+    # # для date picker
+    # def date_on_cancel(self, instance, value):
+    #     # не понятно пока как добраться до атрибута text
+    #     pprint(dir(self.root.ids['calendar_screen']))
+    #     # print(self.root.ids.date_label.text)
+    #     # self.root.ids.date_label.text = 'Cancel'
+    #
+    # # для date picker
+    # def callback(self, date):
+    #     pass
+    #
+    # # для date picker
+    # def open_calendar(self):
+    #     self.date.open()
 
 
 MainApp().run()

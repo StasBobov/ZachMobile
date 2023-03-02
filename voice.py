@@ -30,7 +30,7 @@ OUTPUT_FILENAME = 'note.wav'
 
 
 def record():
-    min_level = 4000
+    min_level = 5000
     wait_time = time.time() + 3
     wait_timeout = time.time() + 20
     global stream, p, frames
