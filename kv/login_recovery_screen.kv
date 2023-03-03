@@ -1,0 +1,33 @@
+#:import settings settings
+
+<LoginRecoveryScreen>:
+    canvas:
+        Color:
+            rgb: utils.get_color_from_hex("#3983F2")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    FloatLayout:
+        TextInput:
+            id: login_email
+            hint_text: 'email'
+            size_hint: .8, .1
+            pos_hint: {'top': .9, 'right': .9}
+        Label:
+            id: login_message
+            color: (1, 0, 0, 1)
+            size_hint: .8, .1
+            pos_hint: {'top': .4, 'right': .9}
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: '[u]Refresh password![/u]'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'left': .8}
+            on_release:
+                settings.reset_password(login_email.text)

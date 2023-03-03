@@ -30,6 +30,7 @@ log.addHandler(fh)
 # Подтверждение по имейл
 # восстановление пароля
 # Размеры диалогового окна
+# в настройках logout
 # почему постоянно зависает?
 # notes / transfer project не прокручивается скролл
 # Активна или не активна кнопка Back
@@ -108,6 +109,10 @@ class OneNoteScreen(Screen):
     pass
 
 
+class LoginRecoveryScreen(Screen):
+    pass
+
+
 class MainApp(MDApp):
     previous_screen = 'home_screen'
 
@@ -131,7 +136,6 @@ class MainApp(MDApp):
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
-
             # заполняем всю херню
             event_calendar.events_filling(sort=None)
             shopping_list.shopping_list_filling()

@@ -45,6 +45,20 @@
             text: '[u]Log in![/u]'
             markup: True
             size_hint: .3, .1
-            pos_hint: {'top': .2, 'right': .8}
+            pos_hint: {'top': .2, 'right': .5}
             on_release:
                 app.my_base.login(login_email.text, login_password.text)
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: '[u]Forgot your password[/u]'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'right': .8}
+            on_release:
+                app.change_screen('login_recovery_screen')
+                app.root.ids['login_recovery_screen'].ids['login_email'].text = login_email.text

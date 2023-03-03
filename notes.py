@@ -188,12 +188,10 @@ def save_note():
 
 def fill_notes_screen():
     app = App.get_running_app()
-
     result = requests.get(
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
     data = json.loads(result.content.decode())
-    log.debug(f'Get app projects data from the server {result}')
-
+    log.debug('Get app projects data from the server')
     # GreedLayout в projects_screen
     notes_layout = app.root.ids['notes_screen'].ids['notes_layout']
 

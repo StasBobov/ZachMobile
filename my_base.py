@@ -54,8 +54,8 @@ class MyBase:
             with open('refresh_token.txt', 'w') as f:
                 f.write(refresh_token)
 
-            app.local_id = localId # uid
-            app.id_token = idToken
+            constants.LOCAL_ID = localId # uid
+            constants.ID_TOKEN = idToken
 
             my_data = '{"name": "", "lname": "", "email": ""}'
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
