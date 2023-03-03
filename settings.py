@@ -1,16 +1,23 @@
 import json
+import logging
 
+import requests
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
 
+import constants
 import my_base
 from kivy.app import App
 
+log = logging.getLogger('settings_loger')
+log.setLevel(logging.DEBUG)
+fh = logging.FileHandler("zach.log", 'a', 'utf-8')
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+log.addHandler(fh)
 
-# def email_verification():
-#     my_base.auth.send_email_verification(id_token)
 
 # Изменить свой пароль
 def reset_password(email):
@@ -41,3 +48,13 @@ def modal_settings_window(name, label):
 
     but_ok.bind(on_press=ok)
     popup.open()
+
+
+def user_settings_fill(data):
+    app = App.get_running_app()
+
+    # Заполняем данные пользователя
+    app.root.ids['settings_screen'].ids['user_name'].text = data['name']
+    app.root.ids['settings_screen'].ids['user_lname'].text = data['lname']
+    app.root.ids['settings_screen'].ids['user_email'].text = data['email']
+    app.root.ids['settings_screen'].ids['user_telephone'].text = data['telephone']

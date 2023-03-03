@@ -10,6 +10,7 @@ import event_calendar
 import shopping_list
 import projects
 import notes
+import settings
 import constants
 import datetime
 import requests
@@ -24,7 +25,7 @@ log.addHandler(fh)
 
 # TODO
 
-
+# Зарефакторить все модули с запросами, перенести запросы в рефилл
 # Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
@@ -138,6 +139,13 @@ class MainApp(MDApp):
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
             # заполняем всю херню
+
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            data = json.loads(result.content.decode())
+            log.debug(f'Get app projects data from the server {result}')
+
+            settings.user_settings_fill(data=data)
             event_calendar.events_filling(sort=None)
             shopping_list.shopping_list_filling()
             tasks.tasks_filling(sort=tasks.Task.task_sort)
