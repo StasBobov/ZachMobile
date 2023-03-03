@@ -8,11 +8,17 @@
             size: self.size
             pos: self.pos
     FloatLayout:
+        ImageButton:
+            size_hint: .2, .15
+            pos_hint: {"top": 1, "right": .25}
+            source: "icons/back.png"
+            on_release:
+                app.change_screen('login_screen')
         TextInput:
             id: login_email
             hint_text: 'email'
             size_hint: .8, .1
-            pos_hint: {'top': .9, 'right': .9}
+            pos_hint: {'top': .8, 'right': .9}
         Label:
             id: login_message
             color: (1, 0, 0, 1)
@@ -25,9 +31,23 @@
                 Rectangle:
                     size: self.size
                     pos: self.pos
-            text: '[u]Refresh password![/u]'
+            text: '[u]Refresh password[/u]'
             markup: True
             size_hint: .3, .1
             pos_hint: {'top': .2, 'left': .8}
             on_release:
                 settings.reset_password(login_email.text)
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: '[u]No access to email[/u]'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'right': .8}
+            on_release:
+                pass
+
