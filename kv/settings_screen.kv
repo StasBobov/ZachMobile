@@ -41,7 +41,7 @@
             ImageButton:
                 source: "icons/edit.png"
                 on_release:
-                    print("Setting_1")
+                    settings.modal_settings_window(command='user_name')
             Label:
                 text: "Last Name"
             Label:
@@ -51,7 +51,7 @@
             ImageButton:
                 source: "icons/edit.png"
                 on_release:
-                    print("Setting_1")
+                    settings.modal_settings_window(command='user_lname')
             Label:
                 text: "Email"
             Label:

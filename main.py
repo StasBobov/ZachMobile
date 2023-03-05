@@ -1,5 +1,10 @@
 import logging
 
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+
 from my_base import MyBase
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDTimePicker
@@ -15,6 +20,7 @@ import constants
 import datetime
 import requests
 import json
+from requests_futures import sessions
 
 log = logging.getLogger('main_loger')
 log.setLevel(logging.DEBUG)
@@ -25,6 +31,7 @@ log.addHandler(fh)
 
 # TODO
 
+# что такое self.date_on_cancel?
 # Зарефакторить все модули с запросами, перенести запросы в рефилл
 # Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
@@ -140,17 +147,32 @@ class MainApp(MDApp):
             self.root.ids['screen_manager'].transition = CardTransition()
             # заполняем всю херню
 
-            result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            data = json.loads(result.content.decode())
-            log.debug(f'Get app projects data from the server {result}')
+            self.session = sessions.FuturesSession(max_workers=5)
 
-            settings.user_settings_fill(data=data)
-            event_calendar.events_filling(sort=None)
-            shopping_list.shopping_list_filling()
-            tasks.tasks_filling(sort=tasks.Task.task_sort)
-            notes.fill_notes_screen()
-            projects.fill_projects_screen()
+            try:
+                future_one = self.session.get(
+                        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+                result = future_one.result()
+                data = json.loads(result.content.decode())
+
+                settings.user_settings_fill(data=data)
+                event_calendar.events_filling(sort=None)
+                # shopping_list.shopping_list_filling()
+                # tasks.tasks_filling(sort=tasks.Task.task_sort)
+                # notes.fill_notes_screen()
+                # projects.fill_projects_screen()
+            except Exception as exc:
+                print(json.loads(exc.args[1]), 'Please heck your internet connection!')
+                self.error_modal_screen(text_error=json.loads(exc.args[1])
+                # log.error(json.loads(exc.args[1]))
+
+
+            # result = requests.get(
+            #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            # data = json.loads(result.content.decode())
+            # log.debug(f'Get app projects data from the server {result}')
+
+
 
             # Если нет, то остаёмся на экране логина
         except Exception:
@@ -160,6 +182,26 @@ class MainApp(MDApp):
     def change_screen(self, screen_name):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
+
+
+    def error_modal_screen(self, text_error):
+        # Создаём модальное окно
+        bl = BoxLayout(orientation='vertical')
+        l = Label(text=text_error, font_size=12)
+        bl.add_widget(l)
+        bl2 = BoxLayout(orientation='horizontal')
+        but_cancel = Button(text='Cancel!', font_size=12, size_hint=(.3, .5))
+        bl2.add_widget(but_cancel)
+        bl.add_widget(bl2)
+        popup = Popup(title="Something went wrong", content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+                      auto_dismiss=False)
+
+        # усли не будешь менять статус
+        def cancel(*args):
+            popup.dismiss()
+
+        but_cancel.bind(on_press=cancel)
+        popup.open()
 
 
     # ___________________________________Time picker________________________________________________________________________

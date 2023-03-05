@@ -56,7 +56,7 @@ class MyBase:
 
             constants.LOCAL_ID = localId # uid
             constants.ID_TOKEN = idToken
-            data = {"telephone": "", "name": "", "lname": "", "email": email}
+            data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email}
 
             my_data = json.dumps(data)
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
@@ -93,9 +93,10 @@ class MyBase:
             try:
                 error_dict = json.loads(ex.args[1])
                 app.root.ids['login_screen'].ids['login_message'].text = error_dict['error']['message']
-            except Exception:
+            except Exception as exc:
                 error_dict = ex
                 app.root.ids['login_screen'].ids['login_message'].text = 'Please heck your internet connection!'
+                log.error(json.loads(exc.args[1]))
             log.error(error_dict)
 
 
