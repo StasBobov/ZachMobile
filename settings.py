@@ -65,10 +65,25 @@ def user_settings_fill(data):
     app.root.ids['settings_screen'].ids['user_telephone'].text = data['user_telephone']
 
 
-def user_settings_refill(data):
-    pass
+def user_settings_refill():
+    app = App.get_running_app()
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app projects data from the server {result}')
+        data = json.loads(result.content.decode())
+        settings_layout = app.root.ids['notes_screen']
+        for w in settings_layout.walk():
+            if w.__class__  == Label:
+                settings_layout.remove_widget(w)
+        user_settings_fill(data=data)
+    except Exception as exc:
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+
 
 def modal_settings_window(command):
+    app = App.get_running_app()
     if command == 'user_name':
         hint_text = 'name'
         lavel_text = 'Please enter your name'
@@ -100,12 +115,17 @@ def modal_settings_window(command):
     # чтобы перенести в выполненные/удалить
     def yes(*args):
         popup.dismiss()
-        log.info('Patch data on server')
-        move_project_request = requests.patch(
-            'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
-            % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
-        log.info(move_project_request)
-
+        try:
+            log.info('Patch data on server')
+            move_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
+            log.info(move_project_request)
+            user_settings_refill()
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
+            return
 
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)

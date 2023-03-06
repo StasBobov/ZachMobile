@@ -80,10 +80,16 @@ def dropdown_menu(text):
 
 def transfer_to_project(menu, text):
     app = App.get_running_app()
-    result = requests.get(
-        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    data = json.loads(result.content.decode())
-    log.debug(f'Get app projects data from the server {result}')
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        data = json.loads(result.content.decode())
+        log.debug(f'Get app projects data from the server {result}')
+    except Exception as exc:
+        app = App.get_running_app()
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+        return
 
     # перекидываем заметку в проект
     def one_click_add(key, description_text, adding_text, *args):
@@ -93,13 +99,18 @@ def transfer_to_project(menu, text):
             app.change_screen('one_project_screen')
         else:
             new_description_text = f'{description_text} \n {adding_text}'
-            log.info('Patch data on server')
-            transfer_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, key, constants.ID_TOKEN),
-                data=json.dumps({'description': new_description_text}))
-            log.info(transfer_project_request)
-            app.change_screen(app.previous_screen)
+            try:
+                log.info('Patch data on server')
+                transfer_project_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, key, constants.ID_TOKEN),
+                    data=json.dumps({'description': new_description_text}))
+                log.info(transfer_project_request)
+                app.change_screen(app.previous_screen)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         popup.dismiss()
 
     # Создаём модальное окно
@@ -168,19 +179,29 @@ def save_note():
     else:
         if Note.operating_note == '':
             # requests.post присваивает запросу ключ
-            log.info('Sends new note data to the server')
-            new_note_request = requests.post(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(note_data_for_load))
-            log.info(new_note_request)
+            try:
+                log.info('Sends new note data to the server')
+                new_note_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(note_data_for_load))
+                log.info(new_note_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         else:
             log.info('Sends patch note data to the server')
-            edit_note_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN),
-                data=json.dumps(note_data_for_load))
-            log.info(edit_note_request)
-            Note.operating_note = ''
+            try:
+                edit_note_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN),
+                    data=json.dumps(note_data_for_load))
+                log.info(edit_note_request)
+                Note.operating_note = ''
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         clear_one_note_screen()
         app.change_screen("notes_screen")
         refill_notes_screen()
@@ -188,13 +209,8 @@ def save_note():
 
 def fill_notes_screen(data):
     app = App.get_running_app()
-    # result = requests.get(
-    #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    # data = json.loads(result.content.decode())
-    # log.debug('Get app projects data from the server')
-    # GreedLayout в projects_screen
-    notes_layout = app.root.ids['notes_screen'].ids['notes_layout']
 
+    notes_layout = app.root.ids['notes_screen'].ids['notes_layout']
     if 'notes' in data:
         notes = data['notes']
         # ключи событий
@@ -234,11 +250,20 @@ def refill_notes_screen():
     app = App.get_running_app()
 
     notes_layout = app.root.ids['notes_screen'].ids['notes_layout']
-    for w in notes_layout.walk():
-        # Удаляем только FloatLayout
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            notes_layout.remove_widget(w)
-    fill_notes_screen()
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app projects data from the server {result}')
+        data = json.loads(result.content.decode())
+        for w in notes_layout.walk():
+            # Удаляем только FloatLayout
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                notes_layout.remove_widget(w)
+        fill_notes_screen(data=data)
+    except Exception as exc:
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+        return
 
 
 def fill_one_note_screen(note_request):
@@ -260,24 +285,36 @@ def clear_one_note_screen():
 def edit_note(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_note_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for edit note')
-            Note.operating_note = arg
-            fill_one_note_screen(edit_note_request)
+            try:
+                edit_note_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for edit note')
+                Note.operating_note = arg
+                fill_one_note_screen(edit_note_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def delete_note(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            get_note_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for delete project')
-            Note.operating_note = arg
-            modal_note_window(name='Delete!', label='Delete this note!?', command='delete')
-            fill_one_note_screen(get_note_request)
+            try:
+                get_note_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for delete project')
+                Note.operating_note = arg
+                modal_note_window(name='Delete!', label='Delete this note!?', command='delete')
+                fill_one_note_screen(get_note_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def modal_note_window(name, label, command):
@@ -307,11 +344,16 @@ def modal_note_window(name, label, command):
         popup.dismiss()
 
         if command == 'delete':
-            log.info('Delete data on server')
-            delete_note_request = requests.delete(
-            'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
-            % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN))
-            log.info(delete_note_request)
+            try:
+                log.info('Delete data on server')
+                delete_note_request = requests.delete(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/notes/%s.json?auth=%s'
+                % (constants.LOCAL_ID, Note.operating_note, constants.ID_TOKEN))
+                log.info(delete_note_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         refill_notes_screen()
         clear_one_note_screen()
         app.change_screen(app.previous_screen)

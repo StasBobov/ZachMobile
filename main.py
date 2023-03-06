@@ -1,5 +1,6 @@
 import logging
 
+from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
@@ -20,7 +21,6 @@ import constants
 import datetime
 import requests
 import json
-from requests_futures import sessions
 
 log = logging.getLogger('main_loger')
 log.setLevel(logging.DEBUG)
@@ -32,9 +32,6 @@ log.addHandler(fh)
 # TODO
 
 # Допилить settings
-# что такое self.date_on_cancel?
-# Зарефакторить все модули с запросами, перенести запросы в рефилл
-# Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
 # Не забыть про тайм пикер
@@ -140,23 +137,16 @@ class MainApp(MDApp):
             with open('refresh_token.txt', 'r') as f:
                 refresh_token = f.read()
             log.info('refresh_token was read')
-            print('open')
             # Если получается, то сразу грузим данные
             constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
-            print('here I am')
             # и переходим на Home screen
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
             # заполняем всю херню
-            print('here I am')
-            # self.session = sessions.FuturesSession(max_workers=5)
-            # self.session = requests.Session()
-            print('here')
             try:
                 result = requests.get(
                         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-                # result = future_one.result()
                 log.debug(f'Get app projects data from the server {result}')
                 data = json.loads(result.content.decode())
 
@@ -167,18 +157,8 @@ class MainApp(MDApp):
                 notes.fill_notes_screen(data=data)
                 projects.fill_projects_screen(data=data)
             except Exception as exc:
-                print(exc)
-                self.error_modal_screen(text_error=json.loads(exc.args[1]))
+                self.error_modal_screen(text_error="Please check your internet connection!)")
                 log.error(exc)
-
-
-            # result = requests.get(
-            #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            # data = json.loads(result.content.decode())
-
-
-
-
             # Если нет, то остаёмся на экране логина
         except Exception:
             log.error('Not all functions not all features enabled on start')
@@ -188,24 +168,26 @@ class MainApp(MDApp):
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
-
     def error_modal_screen(self, text_error):
         # Создаём модальное окно
         bl = BoxLayout(orientation='vertical')
         l = Label(text=text_error, font_size=12)
         bl.add_widget(l)
         bl2 = BoxLayout(orientation='horizontal')
-        but_cancel = Button(text='Cancel!', font_size=12, size_hint=(.3, .5))
-        bl2.add_widget(but_cancel)
+        but_restart = Button(text='Try again!', font_size=12, size_hint=(.3, .5))
+        bl2.add_widget(but_restart)
         bl.add_widget(bl2)
         popup = Popup(title="Something went wrong", content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
                       auto_dismiss=False)
 
-        # усли не будешь менять статус
-        def cancel(*args):
+        def try_again(*args):
             popup.dismiss()
+            self.root.clear_widgets()
+            self.stop()
+            MainApp().run()
 
-        but_cancel.bind(on_press=cancel)
+
+        but_restart.bind(on_press=try_again)
         popup.open()
 
 
@@ -230,36 +212,6 @@ class MainApp(MDApp):
     def get_time(self, instance, time):
         self.root.ids["new_event_screen"].ids["chosen_time"].text = str(time)
         chosen_time = time
-
-    # ___________________________________Date picker________________________________________________________________________
-
-    # def show_date_picker(self):
-    #     # можно поставить любую конкретную даты в скобках
-    #     date_dialog = MDDatePicker()
-    #     # можно выбрать диапазон, возвращает список с датами
-    #     date_dialog = MDDatePicker(mode='range')
-    #     date_dialog.bind(on_save=self.on_save, on_cancel=self.date_on_cancel)
-    #     date_dialog.open()
-    #
-    # # для date picker
-    # def on_save(self, instance, value, date_range):
-    #     print(instance, value, date_range)
-    #
-    # # для date picker
-    # def date_on_cancel(self, instance, value):
-    #     pass
-        # не понятно пока как добраться до атрибута text
-        # pprint(dir(self.root.ids['calendar_screen']))
-        # print(self.root.ids.date_label.text)
-        # self.root.ids.date_label.text = 'Cancel'
-    #
-    # # для date picker
-    # def callback(self, date):
-    #     pass
-    #
-    # # для date picker
-    # def open_calendar(self):
-    #     self.date.open()
 
 
 MainApp().run()

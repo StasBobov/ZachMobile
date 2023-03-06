@@ -27,33 +27,40 @@ class Task:
 
 
 def save_new_task(text):
+    app = App.get_running_app()
     if text:
         task_data_for_load = {'description': text, 'status': 'active'}
         if Task.operating_task == '':
         # requests.post присваивает запросу ключ
-            log.info('Sends new task data to the server')
-            new_task_request = requests.post(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(task_data_for_load))
-            log.info(new_task_request)
+            try:
+                log.info('Sends new task data to the server')
+                new_task_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(task_data_for_load))
+                log.info(new_task_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         # если task уже существует, то меняем
         else:
-            log.info('Sends patch task data to the server')
-            edit_task_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN), data=json.dumps(task_data_for_load))
-            Task.operating_task = ''
-            log.info(edit_task_request)
+            try:
+                log.info('Sends patch task data to the server')
+                edit_task_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN), data=json.dumps(task_data_for_load))
+                Task.operating_task = ''
+                log.info(edit_task_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         refill_tasks_layouts(sort=Task.task_sort)
 
 
 # заполняет экран заданий
 def tasks_filling(data, sort):
     app = App.get_running_app()
-    result = requests.get(
-        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    log.debug(f'Get app task data from the server {result}')
-    data = json.loads(result.content.decode())
     tasks_box_layout = app.root.ids['todolist_screen'].ids['tasks_layout']
     # Проверка на наличие заданий
     if 'tasks' in data:
@@ -150,75 +157,108 @@ def edit_task(*args):
                 Task.operating_task = arg
                 modal_edit_task_window(command='edit', task_request=edit_task_request, text='Edit task')
             except Exception as exc:
-                app.error_modal_screen(text_error='json.loads(exc.args[1]')
-                log.error("json.loads(exc.args[1])")
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
                 return
+
 
 def copy_task(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            copy_task_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for copy task')
-            modal_edit_task_window(command='copy', task_request=copy_task_request, text='Copy task')
+            try:
+                copy_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for copy task')
+                modal_edit_task_window(command='copy', task_request=copy_task_request, text='Copy task')
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def done_task(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_task_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for make task done')
-            Task.operating_task = arg
-            modal_edit_task_window(command='done', task_request=edit_task_request, text='Task done?')
+            try:
+                edit_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for make task done')
+                Task.operating_task = arg
+                modal_edit_task_window(command='done', task_request=edit_task_request, text='Task done?')
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def delete_task(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            get_task_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for delete task')
-            Task.operating_task = arg
-            modal_edit_task_window(command='delete', task_request=get_task_request, text='Delete this task?')
+            try:
+                get_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for delete task')
+                Task.operating_task = arg
+                modal_edit_task_window(command='delete', task_request=get_task_request, text='Delete this task?')
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def delete_all_completed_tasks(*args):
-    result = requests.get(
-        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    log.debug(f'Get app task data from the server {result}')
-    data = json.loads(result.content.decode())
-    inactive_tasks = set()
-    if 'tasks' in data:
-        # словарь словарей
-        tasks = data['tasks']
-        # ключи словаря - идентификаторы в базе
-        task_keys = tasks.keys()
-        # проходим по значениям через ключи словаря
-        for task_key in task_keys:
-            if tasks[task_key]['status'] == 'inactive':
-                inactive_tasks.add(task_key)
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app task data from the server {result}')
+        data = json.loads(result.content.decode())
+        inactive_tasks = set()
+        if 'tasks' in data:
+            # словарь словарей
+            tasks = data['tasks']
+            # ключи словаря - идентификаторы в базе
+            task_keys = tasks.keys()
+            # проходим по значениям через ключи словаря
+            for task_key in task_keys:
+                if tasks[task_key]['status'] == 'inactive':
+                    inactive_tasks.add(task_key)
 
-    if inactive_tasks:
-        modal_task_window(name='Delete all inactive tasks!!!', label='Delete all inactive task!!!?',
-                          amount=inactive_tasks)
-    else:
-        pass
+        if inactive_tasks:
+            modal_task_window(name='Delete all inactive tasks!!!', label='Delete all inactive task!!!?',
+                              amount=inactive_tasks)
+        else:
+            pass
+    except Exception as exc:
+        app = App.get_running_app()
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+        return
 
 
 # перезаполняет layouts с эвентами
 def refill_tasks_layouts(sort):
     app = App.get_running_app()
-
     tasks_box_layout = app.root.ids['todolist_screen'].ids['tasks_layout']
-    for w in tasks_box_layout.walk():
-        # Удаляем только FloatLayout
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            tasks_box_layout.remove_widget(w)
-    tasks_filling(sort=sort, data=None)
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app task data from the server {result}')
+        data = json.loads(result.content.decode())
+        for w in tasks_box_layout.walk():
+            # Удаляем только FloatLayout
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                tasks_box_layout.remove_widget(w)
+        tasks_filling(sort=sort, data=data)
+    except Exception as exc:
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+        return
 
 
 def modal_edit_task_window(command, task_request, text):
@@ -246,31 +286,55 @@ def modal_edit_task_window(command, task_request, text):
     def yes(*args):
         popup.dismiss()
         if command == 'edit':
-            log.info('Patch data on server')
-            edit_task_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
-                data=json.dumps({'description': t_i.text}))
-            log.info(edit_task_request)
+            try:
+                log.info('Patch data on server')
+                edit_task_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
+                    data=json.dumps({'description': t_i.text}))
+                log.info(edit_task_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'copy':
-            log.info('Sends new task data to the server')
-            new_task_request = requests.post(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'description': t_i.text, 'status': 'active'}))
-            log.info(new_task_request)
+            try:
+                log.info('Sends new task data to the server')
+                new_task_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'description': t_i.text, 'status': 'active'}))
+                log.info(new_task_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'done':
-            log.info('Patch data on server')
-            done_task_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
-                data=json.dumps({'status': 'inactive'}))
-            log.info(done_task_request)
+            try:
+                log.info('Patch data on server')
+                done_task_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN),
+                    data=json.dumps({'status': 'inactive'}))
+                log.info(done_task_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'delete':
-            log.info('Delete data on server')
-            delete_task_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN))
-            log.info(delete_task_request)
+            try:
+                log.info('Delete data on server')
+                delete_task_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Task.operating_task, constants.ID_TOKEN))
+                log.info(delete_task_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
         refill_tasks_layouts(sort=Task.task_sort)
         Task.operating_task = ''
@@ -302,11 +366,17 @@ def modal_task_window(name, label, amount=None):
     def yes(*args):
         popup.dismiss()
         for task_key in amount:
-            log.info('Delete data on server')
-            delete_task_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
-            log.info(delete_task_request)
+            try:
+                log.info('Delete data on server')
+                delete_task_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, task_key, constants.ID_TOKEN))
+                log.info(delete_task_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         refill_tasks_layouts(sort=Task.task_sort)
 
     but_no.bind(on_press=no)

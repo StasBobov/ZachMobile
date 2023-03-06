@@ -13,7 +13,6 @@ from kivy.app import App
 from kivy.uix.floatlayout import FloatLayout
 import constants
 
-
 log = logging.getLogger('projects_loger')
 log.setLevel(logging.DEBUG)
 fh = logging.FileHandler("zach.log", 'a', 'utf-8')
@@ -42,7 +41,7 @@ def save_project():
             new_project_request = requests.post(
                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects.json?auth=%s'
                 % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(project_data_for_load))
-        # если эвент уже существует, то меняем
+            # если эвент уже существует, то меняем
             log.info(new_project_request)
 
         else:
@@ -60,11 +59,6 @@ def save_project():
 
 def fill_projects_screen(data):
     app = App.get_running_app()
-
-    # result = requests.get(
-    #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    # data = json.loads(result.content.decode())
-    # log.debug(f'Get app projects data from the server {result}')
 
     # GreedLayout в projects_screen
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
@@ -135,7 +129,7 @@ def fill_projects_screen(data):
                 layout_for_project.add_widget(move_button)
                 layout_for_project.add_widget(delete_button)
                 archive_projects_layout.add_widget(layout_for_project)
-    #
+        #
         # Если нет эвентов в списке
         if active == 0:
             l = Label(text='You have not projectss', font_size='20sp')
@@ -156,14 +150,23 @@ def refill_projects_screen():
 
     projects_layout = app.root.ids['projects_screen'].ids['projects_layout']
     archive_projects_layout = app.root.ids['archive_projects_screen'].ids['archive_projects_layout']
-    for w in projects_layout.walk():
-        # Удаляем только FloatLayout
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            projects_layout.remove_widget(w)
-    for w in archive_projects_layout.walk():
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            archive_projects_layout.remove_widget(w)
-    fill_projects_screen()
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app projects data from the server {result}')
+        data = json.loads(result.content.decode())
+        for w in projects_layout.walk():
+            # Удаляем только FloatLayout
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                projects_layout.remove_widget(w)
+        for w in archive_projects_layout.walk():
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                archive_projects_layout.remove_widget(w)
+        fill_projects_screen(data=data)
+    except Exception as exc:
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
+        return
 
 
 def fill_one_project_screen(project_request):
@@ -198,14 +201,12 @@ def supplement_save():
 
 def clear_supplement_screen():
     app = App.get_running_app()
-
     app.root.ids["supplement_screen"].ids["addition"].text = ''
     app.root.ids["supplement_screen"].ids["info_label"].text = ''
 
 
 def clear_one_project_screen():
     app = App.get_running_app()
-
     app.root.ids["one_project_screen"].ids["title"].text = ''
     app.root.ids["one_project_screen"].ids["description"].text = ''
     app.root.ids["one_project_screen"].ids["info_label"].text = ''
@@ -214,42 +215,61 @@ def clear_one_project_screen():
 def edit_project(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for edit project')
+            try:
+                edit_project_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for edit project')
 
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
+                Project.operating_project = arg
+                fill_one_project_screen(edit_project_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def move_to_archive(*args):
     for arg in args:
-         if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for move project to archive')
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
-            modal_project_window(name='Remove!', label="Remove project to archive?", command='patch_to')
+        if arg.__class__ != ImageButton:
+            try:
+                edit_project_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for move project to archive')
+                Project.operating_project = arg
+                fill_one_project_screen(edit_project_request)
+                modal_project_window(name='Remove!', label="Remove project to archive?", command='patch_to')
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def move_from_archive(*args):
     for arg in args:
-         if arg.__class__ != ImageButton:
-            edit_project_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for move project from archive')
-            Project.operating_project = arg
-            fill_one_project_screen(edit_project_request)
-            modal_project_window(name='Restore!', label="Restore project from archive?", command='patch_from')
+        if arg.__class__ != ImageButton:
+            try:
+                edit_project_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for move project from archive')
+                Project.operating_project = arg
+                fill_one_project_screen(edit_project_request)
+                modal_project_window(name='Restore!', label="Restore project from archive?", command='patch_from')
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def delete_project(*args):
-        for arg in args:
-            if arg.__class__ != ImageButton:
+    for arg in args:
+        if arg.__class__ != ImageButton:
+            try:
                 get_project_request = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
                     % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
@@ -257,6 +277,11 @@ def delete_project(*args):
                 Project.operating_project = arg
                 modal_project_window(name='Delete!', label='Delete this project!?', command='delete')
                 fill_one_project_screen(get_project_request)
+            except Exception as exc:
+                app = App.get_running_app()
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
 
 def modal_project_window(name, label, command):
@@ -283,25 +308,43 @@ def modal_project_window(name, label, command):
 
     # чтобы перенести в выполненные/удалить
     def yes(*args):
+        app = App.get_running_app()
         popup.dismiss()
         if command == 'patch_to':
-            log.info('Patch data on server')
-            move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-            log.info(move_project_request)
+            try:
+                log.info('Patch data on server')
+                move_project_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN),
+                    data=json.dumps({'status': 'inactive'}))
+                log.info(move_project_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'patch_from':
-            log.info('Patch data on server')
-            move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN), data=json.dumps({'status': 'active'}))
-            log.info(move_project_request)
+            try:
+                log.info('Patch data on server')
+                move_project_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN),
+                    data=json.dumps({'status': 'active'}))
+                log.info(move_project_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'delete':
-            log.info('Delete data on server')
-            delete_project_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN))
-            log.info(delete_project_request)
+            try:
+                log.info('Delete data on server')
+                delete_project_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/projects/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Project.operating_project, constants.ID_TOKEN))
+                log.info(delete_project_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         refill_projects_screen()
         app.change_screen(app.previous_screen)
         clear_one_project_screen()
@@ -310,6 +353,3 @@ def modal_project_window(name, label, command):
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)
     popup.open()
-
-
-

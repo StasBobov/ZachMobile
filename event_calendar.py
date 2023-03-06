@@ -312,22 +312,21 @@ def refill_events_layouts(sort):
     events_box_layout = app.root.ids['events_screen'].ids['events_layout']
     inactive_events_box_layout = app.root.ids['inactive_events_screen'].ids['inactive_events_layout']
     try:
-        events_data = app.session.get(
+        events_data = requests.get(
             'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-        # result = events_data.result()
         data = json.loads(events_data.content.decode())
+        for w in events_box_layout.walk():
+            # Удаляем только FloatLayout
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                events_box_layout.remove_widget(w)
+        for w in inactive_events_box_layout.walk():
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                inactive_events_box_layout.remove_widget(w)
+        events_filling(sort=sort, data=data)
     except Exception as exc:
-        app.error_modal_screen(text_error=json.loads(exc.args[1]))
-        log.error(json.loads(exc.args[1]))
+        app.error_modal_screen(text_error="Please check your internet connection!")
+        log.error(exc)
         return
-    for w in events_box_layout.walk():
-        # Удаляем только FloatLayout
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            events_box_layout.remove_widget(w)
-    for w in inactive_events_box_layout.walk():
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            inactive_events_box_layout.remove_widget(w)
-    events_filling(sort=sort, data=data)
 
 
 def save_new_event():
@@ -355,27 +354,27 @@ def save_new_event():
             # requests.post присваивает запросу ключ
             try:
                 log.info('Send post data event on server')
-                new_event_request = app.session.post(
+                new_event_request = requests.post(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
                     % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
                 log.info(new_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
                 return
 
         # если эвент уже существует, то меняем
         else:
             try:
                 log.info('Send patch data event on server')
-                edit_event_request = app.session.patch(
+                edit_event_request = requests.patch(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
                 log.info(edit_event_request)
                 Event.operating_event = ''
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
                 return
 
         clear_new_event_screen()
@@ -397,16 +396,15 @@ def edit_event(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
             try:
-                edit_event_request = app.session.get(
+                edit_event_request = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
                 log.debug(f'Edit event get req {edit_event_request}')
                 Event.operating_event = arg
-                # result = edit_event_request.result()
                 fill_new_event_screen(edit_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
 
 
 def done_event(*args):
@@ -414,17 +412,16 @@ def done_event(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
             try:
-                done_event_request = app.session.get(
+                done_event_request = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
                 log.debug(f'Done event get req {done_event_request}')
                 Event.operating_event = arg
-                # result = done_event_request.result()
                 modal_event_window(name='Done!', label="It's finished?", command='patch')
                 fill_new_event_screen(done_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
 
 
 def delete_event(*args):
@@ -432,17 +429,16 @@ def delete_event(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
             try:
-                get_event_request = app.session.get(
+                get_event_request = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
                 log.debug(f'Delete event get req {get_event_request}')
                 Event.operating_event = arg
                 modal_event_window(name='Delete!', label='Delete event!?', command='delete')
-                # result = get_event_request.result()
                 fill_new_event_screen(get_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
 
 
 def copy_event(*args):
@@ -450,15 +446,14 @@ def copy_event(*args):
     for arg in args:
         if arg.__class__ != ImageButton:
             try:
-                copy_event_request = app.session.get(
+                copy_event_request = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
                 log.debug(f'Copy event get req {copy_event_request}')
-                # result = copy_event_request.result()
                 fill_new_event_screen(copy_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
 
 
 def fill_new_event_screen(event_request):
@@ -504,24 +499,24 @@ def modal_event_window(name, label, command):
         if command == 'patch':
             try:
                 log.info('Try patch the event')
-                done_event_request = app.session.patch(
+                done_event_request = requests.patch(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
                 log.info(done_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
                 return
         elif command == 'delete':
             try:
                 log.info('Try delete the event')
-                delete_event_request = app.session.delete(
+                delete_event_request = requests.delete(
                     'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
                     % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
                 log.info(delete_event_request)
             except Exception as exc:
-                app.error_modal_screen(text_error=json.loads(exc.args[1]))
-                log.error(json.loads(exc.args[1]))
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
                 return
         refill_events_layouts(sort=Event.date_sort)
         app.change_screen(app.previous_screen)

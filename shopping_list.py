@@ -52,11 +52,6 @@ def save_new_purchase(text):
 
 def shopping_list_filling(data):
     app = App.get_running_app()
-    # # TODO здесь нужно будет добавить подгрузку с файла
-    # result = requests.get(
-    #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    # log.debug(f'Get app task data from the server {result}')
-    # data = json.loads(result.content.decode())
 
     shopping_list_layout = app.root.ids['shopping_list_screen'].ids['shopping_layout']
     # Проверка на наличие заданий
@@ -139,58 +134,86 @@ def shopping_list_filling(data):
 
 
 def edit_purchase(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
             # по ключу мы достаём запись
-            edit_purchase_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for edit purchase')
-            Purchase.operating_purchase = arg
-            modal_edit_purchase_window(command='edit', purchase_request=edit_purchase_request, text='Edit purchase')
+            try:
+                edit_purchase_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for edit purchase')
+                Purchase.operating_purchase = arg
+                modal_edit_purchase_window(command='edit', purchase_request=edit_purchase_request, text='Edit purchase')
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
 
 
 def copy_purchase(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            copy_purchase_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for copy purchase')
-            modal_edit_purchase_window(command='copy', purchase_request=copy_purchase_request, text='Copy purchase')
+            try:
+                copy_purchase_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for copy purchase')
+                modal_edit_purchase_window(command='copy', purchase_request=copy_purchase_request, text='Copy purchase')
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
 
 
 def done_purchase(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            done_purchase_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for make purchase done')
-            Purchase.operating_purchase = arg
-            modal_edit_purchase_window(command='done', purchase_request=done_purchase_request, text='Purchase done?')
+            try:
+                done_purchase_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for make purchase done')
+                Purchase.operating_purchase = arg
+                modal_edit_purchase_window(command='done', purchase_request=done_purchase_request, text='Purchase done?')
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
 
 
 def delete_purchase(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            delete_purchase_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for delete purchase')
-            Purchase.operating_purchase = arg
-            modal_edit_purchase_window(command='delete', purchase_request=delete_purchase_request, text='Delete this purchase?')
+            try:
+                delete_purchase_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for delete purchase')
+                Purchase.operating_purchase = arg
+                modal_edit_purchase_window(command='delete', purchase_request=delete_purchase_request, text='Delete this purchase?')
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
 
 
 def refill_shopping_list_layout():
     app = App.get_running_app()
 
     shopping_list_layout = app.root.ids['shopping_list_screen'].ids['shopping_layout']
-    for w in shopping_list_layout.walk():
-        # Удаляем только FloatLayout
-        if w.__class__ == FloatLayout or w.__class__ == Label:
-            shopping_list_layout.remove_widget(w)
-    shopping_list_filling()
+    try:
+        result = requests.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        log.debug(f'Get app projects data from the server {result}')
+        data = json.loads(result.content.decode())
+        for w in shopping_list_layout.walk():
+            # Удаляем только FloatLayout
+            if w.__class__ == FloatLayout or w.__class__ == Label:
+                shopping_list_layout.remove_widget(w)
+        shopping_list_filling(data=data)
+    except Exception as exc:
+        app.error_modal_screen(text_error="Please check your internet connection!)")
+        log.error(exc)
 
 
 def modal_edit_purchase_window(command, purchase_request, text):
@@ -220,31 +243,51 @@ def modal_edit_purchase_window(command, purchase_request, text):
     def yes(*args):
         popup.dismiss()
         if command == 'edit':
-            log.info('Patch data on server')
-            edit_purchase_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN),
-                data=json.dumps({'purchase_text': t_i.text}))
-            log.info(edit_purchase_request)
+            try:
+                log.info('Patch data on server')
+                edit_purchase_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN),
+                    data=json.dumps({'purchase_text': t_i.text}))
+                log.info(edit_purchase_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'copy':
-            log.info('Sends new purchase data to the server')
-            new_purchase_request = requests.post(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'purchase_text': t_i.text, 'status': 'active'}))
-            log.info(new_purchase_request)
+            try:
+                log.info('Sends new purchase data to the server')
+                new_purchase_request = requests.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'purchase_text': t_i.text, 'status': 'active'}))
+                log.info(new_purchase_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'done':
-            log.info('Patch data on server')
-            done_purchase_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN),
-                data=json.dumps({'status': 'inactive'}))
-            log.info(done_purchase_request)
+            try:
+                log.info('Patch data on server')
+                done_purchase_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN),
+                    data=json.dumps({'status': 'inactive'}))
+                log.info(done_purchase_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
         elif command == 'delete':
-            log.info('Delete data on server')
-            delete_purchase_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN))
-            log.info(delete_purchase_request)
+            try:
+                log.info('Delete data on server')
+                delete_purchase_request = requests.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Purchase.operating_purchase, constants.ID_TOKEN))
+                log.info(delete_purchase_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
+                return
 
         refill_shopping_list_layout()
         Purchase.operating_purchase = ''
@@ -282,78 +325,99 @@ def modal_delete_window(command, *args):
 
     # чтобы перенести в выполненные/удалить
     def yes(*args):
+        app = App.get_running_app()
         popup.dismiss()
-        result = requests.get(
-            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-        log.debug(f'Get shopping list data from the server {result}')
-        data = json.loads(result.content.decode())
-        if 'shop_list' in data:
-            # словарь словарей
-            purchases = data['shop_list']
-            # ключи словаря - идентификаторы в базе
-            purchase_keys = purchases.keys()
-            # проходим по значениям через ключи словаря
-            if command == 'delete':
-                for purchase_key in purchase_keys:
-                    log.info('Delete data on server')
-                    delete_purchase_request = requests.delete(
-                        'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                        % (constants.LOCAL_ID, purchase_key, constants.ID_TOKEN))
-                    log.info(delete_purchase_request)
-                Purchase.operating_purchase = ''
-                refill_shopping_list_layout()
-            elif command == 'delete_with_added':
-                # Второе модальное окно, предлагающее сохранить активные покупки
-                bl = BoxLayout(orientation='vertical')
-                l = Label(text='Do you want to save unfinished purchases?', size_hint=(1, .3),
-                                pos_hint={'top': .85, 'right': 1})
-                bl.add_widget(l)
-                bl2 = BoxLayout(orientation='horizontal')
-                but_cancel = Button(text='Cancel creation \n of  new \n shopping list', font_size=12, size_hint=(.3, .5))
-                but_no = Button(text="Don't save \n unfinished \npurchases", font_size=12, size_hint=(.3, .5))
-                but_yes = Button(text='Save unfinished \n purchases', font_size=12, size_hint=(.3, .5))
-                bl2.add_widget(but_cancel)
-                bl2.add_widget(but_no)
-                bl2.add_widget(but_yes)
-                bl.add_widget(bl2)
-                small_popup = Popup(title='Save unfinished purchases?', content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
-                              auto_dismiss=False)
-
-                def small_no(*args):
-                    small_popup.dismiss()
+        try:
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            log.debug(f'Get shopping list data from the server {result}')
+            data = json.loads(result.content.decode())
+            if 'shop_list' in data:
+                # словарь словарей
+                purchases = data['shop_list']
+                # ключи словаря - идентификаторы в базе
+                purchase_keys = purchases.keys()
+                # проходим по значениям через ключи словаря
+                if command == 'delete':
                     for purchase_key in purchase_keys:
                         log.info('Delete data on server')
-                        delete_purchase_request = requests.delete(
-                            'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                            % (constants.LOCAL_ID, purchase_key, constants.ID_TOKEN))
-                        log.info(delete_purchase_request)
-                    Purchase.operating_purchase = ''
-                    refill_shopping_list_layout()
-
-                def small_cancel(*args):
-                    small_popup.dismiss()
-
-                # если хотим оставить незавершенные покупки
-                def small_yes(*args):
-                    small_popup.dismiss()
-                    inactive_purchases = set()
-                    for purchase_key in purchase_keys:
-                        if purchases[purchase_key]['status'] == 'inactive':
-                            inactive_purchases.add(purchase_key)
-                    if inactive_purchases:
-                        for purchase in inactive_purchases:
-                            log.info('Delete data on server')
+                        try:
                             delete_purchase_request = requests.delete(
                                 'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
-                                % (constants.LOCAL_ID, purchase, constants.ID_TOKEN))
+                                % (constants.LOCAL_ID, purchase_key, constants.ID_TOKEN))
                             log.info(delete_purchase_request)
+                        except Exception as exc:
+                            app.error_modal_screen(text_error="Please check your internet connection!)")
+                            log.error(exc)
+                            return
+                    Purchase.operating_purchase = ''
+                    refill_shopping_list_layout()
+                elif command == 'delete_with_added':
+                    # Второе модальное окно, предлагающее сохранить активные покупки
+                    bl = BoxLayout(orientation='vertical')
+                    l = Label(text='Do you want to save unfinished purchases?', size_hint=(1, .3),
+                                    pos_hint={'top': .85, 'right': 1})
+                    bl.add_widget(l)
+                    bl2 = BoxLayout(orientation='horizontal')
+                    but_cancel = Button(text='Cancel creation \n of  new \n shopping list', font_size=12, size_hint=(.3, .5))
+                    but_no = Button(text="Don't save \n unfinished \npurchases", font_size=12, size_hint=(.3, .5))
+                    but_yes = Button(text='Save unfinished \n purchases', font_size=12, size_hint=(.3, .5))
+                    bl2.add_widget(but_cancel)
+                    bl2.add_widget(but_no)
+                    bl2.add_widget(but_yes)
+                    bl.add_widget(bl2)
+                    small_popup = Popup(title='Save unfinished purchases?', content=bl, size_hint=(0.4, 0.4), pos_hint={"x": 0.2, "top": 0.9},
+                                  auto_dismiss=False)
+
+                    def small_no(*args):
+                        small_popup.dismiss()
+                        for purchase_key in purchase_keys:
+                            try:
+                                log.info('Delete data on server')
+                                delete_purchase_request = requests.delete(
+                                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                                    % (constants.LOCAL_ID, purchase_key, constants.ID_TOKEN))
+                                log.info(delete_purchase_request)
+                            except Exception as exc:
+                                app.error_modal_screen(text_error="Please check your internet connection!)")
+                                log.error(exc)
+                                return
                         Purchase.operating_purchase = ''
                         refill_shopping_list_layout()
 
-                but_cancel.bind(on_press=small_cancel)
-                but_no.bind(on_press=small_no)
-                but_yes.bind(on_press=small_yes)
-                small_popup.open()
+                    def small_cancel(*args):
+                        small_popup.dismiss()
+
+                    # если хотим оставить незавершенные покупки
+                    def small_yes(*args):
+                        small_popup.dismiss()
+                        inactive_purchases = set()
+                        for purchase_key in purchase_keys:
+                            if purchases[purchase_key]['status'] == 'inactive':
+                                inactive_purchases.add(purchase_key)
+                        if inactive_purchases:
+                            for purchase in inactive_purchases:
+                                try:
+                                    log.info('Delete data on server')
+                                    delete_purchase_request = requests.delete(
+                                        'https://zach-mobile-default-rtdb.firebaseio.com/%s/shop_list/%s.json?auth=%s'
+                                        % (constants.LOCAL_ID, purchase, constants.ID_TOKEN))
+                                    log.info(delete_purchase_request)
+                                except Exception as exc:
+                                    app.error_modal_screen(text_error="Please check your internet connection!)")
+                                    log.error(exc)
+                                    return
+                            Purchase.operating_purchase = ''
+                            refill_shopping_list_layout()
+
+                    but_cancel.bind(on_press=small_cancel)
+                    but_no.bind(on_press=small_no)
+                    but_yes.bind(on_press=small_yes)
+                    small_popup.open()
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!)")
+            log.error(exc)
+            return
 
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)
