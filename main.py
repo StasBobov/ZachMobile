@@ -31,13 +31,12 @@ log.addHandler(fh)
 
 # TODO
 
-# Допилить settings
+
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
 # Не забыть про тайм пикер
 # потеря имейла
 # Размеры диалогового окна
-# в настройках logout
 # почему постоянно зависает?
 # что делать с журналами логов
 # notes / transfer project не прокручивается скролл
@@ -122,6 +121,7 @@ class LoginRecoveryScreen(Screen):
 
 
 class MainApp(MDApp):
+    lock = 1
     previous_screen = 'home_screen'
 
     def build(self):
@@ -143,6 +143,7 @@ class MainApp(MDApp):
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
+            self.lock = 0
             # заполняем всю херню
             try:
                 result = requests.get(
@@ -189,6 +190,15 @@ class MainApp(MDApp):
 
         but_restart.bind(on_press=try_again)
         popup.open()
+
+    def unlock_header(self, command):
+        if self.lock:
+            pass
+        else:
+            if command == 'home':
+                self.change_screen('home_screen')
+            elif command == 'settings':
+                self.change_screen('settings_screen')
 
 
     # ___________________________________Time picker________________________________________________________________________

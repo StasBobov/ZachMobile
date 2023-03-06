@@ -1,3 +1,5 @@
+import os
+
 import requests
 import json
 from kivy.app import App
@@ -31,6 +33,19 @@ firebaseConfig = {
 firebase = pyrebase.initialize_app(firebaseConfig)
 
 auth = firebase.auth()
+
+
+def logout():
+    app = App.get_running_app()
+    path = 'refresh_token.txt'
+    if os.path.isfile(path):
+        os.remove(path)
+        constants.LOCAL_ID = None
+        constants.ID_TOKEN = None
+        app.lock = 1
+        app.change_screen('login_screen')
+    else:
+        print('No')
 
 
 class MyBase:
@@ -72,8 +87,6 @@ class MyBase:
             app.error_modal_screen(text_error="Please check your internet connection!")
             log.error(exc)
 
-
-
     def login(self, email, password):
         app = App.get_running_app()
         try:
@@ -86,6 +99,7 @@ class MyBase:
                 f.write(refresh_token)
             constants.LOCAL_ID = localId  # uid
             constants.ID_TOKEN = idToken
+            app.lock = 0
             result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
             # result = future_one.result()
@@ -103,22 +117,26 @@ class MyBase:
                 log.error(ex)
             log.error(error_dict)
 
-
     def exchange_refresh_token(self, refresh_token):
         app = App.get_running_app()
         refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
         refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}" % refresh_token
         try:
+
             refresh_req = requests.post(refresh_url, data=refresh_payload)
 
             local_id = refresh_req.json()['user_id']
+
             id_token = refresh_req.json()['id_token']
             log.debug('Got user_id and id_token')
             return id_token, local_id
         except Exception as exc:
-            app.error_modal_screen(text_error="Please check your internet connection!")
+            if type(exc) == requests.exceptions.ConnectionError:
+                app.error_modal_screen(text_error="Please check your internet connection!")
+            else:
+                app.root.ids['login_screen'].ids['login_message'].text = 'There is something wrong with auto-authorization, \n ' \
+                                                                         'try logging in with your email and password'
             log.error(exc)
-
 
     def create_user(self, idToken, my_data, localId):
         app = App.get_running_app()
@@ -137,3 +155,4 @@ class MyBase:
         except Exception as exc:
             app.error_modal_screen(text_error="Please check your internet connection!")
             log.error(exc)
+

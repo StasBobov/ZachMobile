@@ -35,13 +35,13 @@ GridLayout:
             Button:
                 text: "Home"
                 on_release:
-                    app.change_screen('home_screen')
+                    app.unlock_header('home')
             Image:
                 source: "icons/logo.png"
             ImageButton:
                 source: "icons/settings.png"
                 on_release:
-                    app.change_screen('settings_screen')
+                    app.unlock_header('settings')
         ScreenManager:
             size_hint: 1, 0.85
             pos_hint: {"top": .85, "left": 1}

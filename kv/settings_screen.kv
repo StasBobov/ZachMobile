@@ -1,3 +1,5 @@
+#:import my_base my_base
+
 <SettingsScreen>:
     FloatLayout:
         canvas:
@@ -21,6 +23,10 @@
             text: "Settings"
             size_hint: .3, .8
             pos_hint: {"top": 1, "left": .7}
+        LabelButton:
+            text: 'Logout BUTTON'
+            on_release:
+                my_base.logout()
     BoxLayout:
         orientation: "vertical"
         size_hint: 1, .8
