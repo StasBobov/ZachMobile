@@ -194,12 +194,8 @@ def calendar_button_release(day, name):
 
 
 # заполняет экран эвентов
-def events_filling(sort):
+def events_filling(data, sort):
     app = App.get_running_app()
-    result = requests.get(
-        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    log.debug('Get data from db')
-    data = json.loads(result.content.decode())
     # BoxLayout в events_screen
     events_box_layout = app.root.ids['events_screen'].ids['events_layout']
     inactive_events_box_layout = app.root.ids['inactive_events_screen'].ids['inactive_events_layout']
@@ -315,6 +311,15 @@ def refill_events_layouts(sort):
     app = App.get_running_app()
     events_box_layout = app.root.ids['events_screen'].ids['events_layout']
     inactive_events_box_layout = app.root.ids['inactive_events_screen'].ids['inactive_events_layout']
+    try:
+        events_data = app.session.get(
+            'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+        # result = events_data.result()
+        data = json.loads(events_data.content.decode())
+    except Exception as exc:
+        app.error_modal_screen(text_error=json.loads(exc.args[1]))
+        log.error(json.loads(exc.args[1]))
+        return
     for w in events_box_layout.walk():
         # Удаляем только FloatLayout
         if w.__class__ == FloatLayout or w.__class__ == Label:
@@ -322,7 +327,7 @@ def refill_events_layouts(sort):
     for w in inactive_events_box_layout.walk():
         if w.__class__ == FloatLayout or w.__class__ == Label:
             inactive_events_box_layout.remove_widget(w)
-    events_filling(sort=sort)
+    events_filling(sort=sort, data=data)
 
 
 def save_new_event():
@@ -348,19 +353,30 @@ def save_new_event():
                                'status': 'active', 'date_time': date_time}
         if Event.operating_event == '':
             # requests.post присваивает запросу ключ
-            log.info('Send post data event on server')
-            new_event_request = requests.post(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
-            log.info(new_event_request)
+            try:
+                log.info('Send post data event on server')
+                new_event_request = app.session.post(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
+                log.info(new_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
+                return
+
         # если эвент уже существует, то меняем
         else:
-            log.info('Send patch data event on server')
-            edit_event_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
-            log.info(edit_event_request)
-            Event.operating_event = ''
+            try:
+                log.info('Send patch data event on server')
+                edit_event_request = app.session.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps(event_data_for_load))
+                log.info(edit_event_request)
+                Event.operating_event = ''
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
+                return
 
         clear_new_event_screen()
         app.change_screen("events_screen")
@@ -377,48 +393,72 @@ def clear_new_event_screen():
 
 
 def edit_event(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_event_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug(f'Edit event get req {edit_event_request}')
-            Event.operating_event = arg
-            fill_new_event_screen(edit_event_request)
+            try:
+                edit_event_request = app.session.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug(f'Edit event get req {edit_event_request}')
+                Event.operating_event = arg
+                # result = edit_event_request.result()
+                fill_new_event_screen(edit_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
 
 
 def done_event(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_event_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug(f'Done event get req {edit_event_request}')
-            Event.operating_event = arg
-            fill_new_event_screen(edit_event_request)
-            modal_event_window(name='Done!', label="It's finished?", command='patch')
+            try:
+                done_event_request = app.session.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug(f'Done event get req {done_event_request}')
+                Event.operating_event = arg
+                # result = done_event_request.result()
+                modal_event_window(name='Done!', label="It's finished?", command='patch')
+                fill_new_event_screen(done_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
 
 
 def delete_event(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            get_event_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug(f'Delete event get req {get_event_request}')
-            Event.operating_event = arg
-            modal_event_window(name='Delete!', label='Delete event!?', command='delete')
-            fill_new_event_screen(get_event_request)
+            try:
+                get_event_request = app.session.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug(f'Delete event get req {get_event_request}')
+                Event.operating_event = arg
+                modal_event_window(name='Delete!', label='Delete event!?', command='delete')
+                # result = get_event_request.result()
+                fill_new_event_screen(get_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
 
 
 def copy_event(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            copy_event_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug(f'Copy event get req {copy_event_request}')
-            fill_new_event_screen(copy_event_request)
+            try:
+                copy_event_request = app.session.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug(f'Copy event get req {copy_event_request}')
+                # result = copy_event_request.result()
+                fill_new_event_screen(copy_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
 
 
 def fill_new_event_screen(event_request):
@@ -462,17 +502,27 @@ def modal_event_window(name, label, command):
     def yes(*args):
         popup.dismiss()
         if command == 'patch':
-            log.info('Try patch the event')
-            done_event_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-            log.info(done_event_request)
+            try:
+                log.info('Try patch the event')
+                done_event_request = app.session.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
+                log.info(done_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
+                return
         elif command == 'delete':
-            log.info('Try delete the event')
-            delete_event_request = requests.delete(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
-                % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
-            log.info(delete_event_request)
+            try:
+                log.info('Try delete the event')
+                delete_event_request = app.session.delete(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/events/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, Event.operating_event, constants.ID_TOKEN), data=json.dumps({'status': 'inactive'}))
+                log.info(delete_event_request)
+            except Exception as exc:
+                app.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(json.loads(exc.args[1]))
+                return
         refill_events_layouts(sort=Event.date_sort)
         app.change_screen(app.previous_screen)
         clear_new_event_screen()

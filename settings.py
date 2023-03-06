@@ -29,9 +29,13 @@ def reset_password(email):
                                      label='A link to change your password has been sent to your email')
         app.change_screen('login_screen')
     except Exception as exc:
-        error_dict = json.loads(exc.args[1])
-        # print(exc)
-        app.root.ids['login_recovery_screen'].ids['login_message'].text = error_dict['error']['message']
+        try:
+            error_dict = json.loads(exc.args[1])
+            # print(exc)
+            app.root.ids['login_recovery_screen'].ids['login_message'].text = error_dict['error']['message']
+        except Exception as ex:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(ex)
 
 
 def modal_change_password_window(name, label):

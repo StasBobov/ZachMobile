@@ -31,11 +31,13 @@ log.addHandler(fh)
 
 # TODO
 
+# Допилить settings
 # что такое self.date_on_cancel?
 # Зарефакторить все модули с запросами, перенести запросы в рефилл
 # Ожидание и request ошибки в приложениях
 # Заполнение личных данных в db (возможно через настройки)
 # Подтверждение по имейл
+# Не забыть про тайм пикер
 # потеря имейла
 # Размеры диалогового окна
 # в настройках logout
@@ -138,39 +140,42 @@ class MainApp(MDApp):
             with open('refresh_token.txt', 'r') as f:
                 refresh_token = f.read()
             log.info('refresh_token was read')
+            print('open')
             # Если получается, то сразу грузим данные
             constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
-
+            print('here I am')
             # и переходим на Home screen
             self.root.ids['screen_manager'].transition = NoTransition()
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
             # заполняем всю херню
-
-            self.session = sessions.FuturesSession(max_workers=5)
-
+            print('here I am')
+            # self.session = sessions.FuturesSession(max_workers=5)
+            # self.session = requests.Session()
+            print('here')
             try:
-                future_one = self.session.get(
+                result = requests.get(
                         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-                result = future_one.result()
+                # result = future_one.result()
+                log.debug(f'Get app projects data from the server {result}')
                 data = json.loads(result.content.decode())
 
                 settings.user_settings_fill(data=data)
-                event_calendar.events_filling(sort=None)
-                # shopping_list.shopping_list_filling()
-                # tasks.tasks_filling(sort=tasks.Task.task_sort)
-                # notes.fill_notes_screen()
-                # projects.fill_projects_screen()
+                event_calendar.events_filling(data=data, sort=None)
+                shopping_list.shopping_list_filling(data=data)
+                tasks.tasks_filling(sort=tasks.Task.task_sort, data=data)
+                notes.fill_notes_screen(data=data)
+                projects.fill_projects_screen(data=data)
             except Exception as exc:
-                print(json.loads(exc.args[1]), 'Please heck your internet connection!')
-                self.error_modal_screen(text_error=json.loads(exc.args[1])
-                # log.error(json.loads(exc.args[1]))
+                print(exc)
+                self.error_modal_screen(text_error=json.loads(exc.args[1]))
+                log.error(exc)
 
 
             # result = requests.get(
             #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
             # data = json.loads(result.content.decode())
-            # log.debug(f'Get app projects data from the server {result}')
+
 
 
 
@@ -208,10 +213,12 @@ class MainApp(MDApp):
 
     def show_time_picker(self):
         time_dialog = MDTimePicker()
+        self.theme_cls.theme_style = "Dark"
+        self.theme_cls.primary_palette = "Orange"
         # можно поставить время по дефолту
         default_time = datetime.datetime.strptime("4:20:00", '%H:%M:%S').time()
         time_dialog.set_time(default_time)
-        time_dialog.bind(on_cancel=self.date_on_cancel, time=self.get_time)
+        time_dialog.bind(on_cancel=self.time_on_cancel, time=self.get_time)
         time_dialog.open()
 
     # для time picker
@@ -240,10 +247,11 @@ class MainApp(MDApp):
     #
     # # для date picker
     # def date_on_cancel(self, instance, value):
-    #     # не понятно пока как добраться до атрибута text
-    #     pprint(dir(self.root.ids['calendar_screen']))
-    #     # print(self.root.ids.date_label.text)
-    #     # self.root.ids.date_label.text = 'Cancel'
+    #     pass
+        # не понятно пока как добраться до атрибута text
+        # pprint(dir(self.root.ids['calendar_screen']))
+        # print(self.root.ids.date_label.text)
+        # self.root.ids.date_label.text = 'Cancel'
     #
     # # для date picker
     # def callback(self, date):

@@ -48,7 +48,7 @@ def save_new_task(text):
 
 
 # заполняет экран заданий
-def tasks_filling(sort):
+def tasks_filling(data, sort):
     app = App.get_running_app()
     result = requests.get(
         'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
@@ -139,15 +139,20 @@ def tasks_filling(sort):
 
 
 def edit_task(*args):
+    app = App.get_running_app()
     for arg in args:
         if arg.__class__ != ImageButton:
-            edit_task_request = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
-                % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
-            log.debug('Get data from server for edit task')
-            Task.operating_task = arg
-            modal_edit_task_window(command='edit', task_request=edit_task_request, text='Edit task')
-
+            try:
+                edit_task_request = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s/tasks/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, arg, constants.ID_TOKEN))
+                log.debug('Get data from server for edit task')
+                Task.operating_task = arg
+                modal_edit_task_window(command='edit', task_request=edit_task_request, text='Edit task')
+            except Exception as exc:
+                app.error_modal_screen(text_error='json.loads(exc.args[1]')
+                log.error("json.loads(exc.args[1])")
+                return
 
 def copy_task(*args):
     for arg in args:
@@ -213,7 +218,7 @@ def refill_tasks_layouts(sort):
         # Удаляем только FloatLayout
         if w.__class__ == FloatLayout or w.__class__ == Label:
             tasks_box_layout.remove_widget(w)
-    tasks_filling(sort=sort)
+    tasks_filling(sort=sort, data=None)
 
 
 def modal_edit_task_window(command, task_request, text):

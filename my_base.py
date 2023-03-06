@@ -42,37 +42,37 @@ class MyBase:
         app = App.get_running_app()
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + self.wak
         signup_payload = {"email": email, "password": password, "returnSecureToken": True}
-        # Передаём в базу имейл и пассворд
-        sign_up_request = requests.post(signup_url, data=signup_payload)
-        sign_up_data = json.loads(sign_up_request.content.decode())
-        log.info(sign_up_request, sign_up_data)
+        try:
+            # Передаём в базу имейл и пассворд
+            sign_up_request = requests.post(signup_url, data=signup_payload)
+            sign_up_data = json.loads(sign_up_request.content.decode())
+            log.info(sign_up_request, sign_up_data)
 
-        if sign_up_request.ok:
-            refresh_token = sign_up_data['refreshToken']
-            localId = sign_up_data['localId']
-            idToken = sign_up_data['idToken'] # authToken
-            with open('refresh_token.txt', 'w') as f:
-                f.write(refresh_token)
+            if sign_up_request.ok:
+                refresh_token = sign_up_data['refreshToken']
+                localId = sign_up_data['localId']
+                idToken = sign_up_data['idToken'] # authToken
+                with open('refresh_token.txt', 'w') as f:
+                    f.write(refresh_token)
 
-            constants.LOCAL_ID = localId # uid
-            constants.ID_TOKEN = idToken
-            data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email}
+                constants.LOCAL_ID = localId # uid
+                constants.ID_TOKEN = idToken
+                data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email}
 
-            my_data = json.dumps(data)
-            post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
-                                          + idToken, data=my_data)
-            log.debug(f'Sending data to database {post_request}')
+                my_data = json.dumps(data)
+                self.create_user(my_data=my_data, idToken=idToken, localId=localId)
 
-            event_calendar.events_filling(sort=None)
+                # показываем текст ошибки в лэйбле, если данные введены неверно
+            if not sign_up_request.ok:
+                error_data = json.loads(sign_up_request.content.decode())
+                log.error(f'{error_data} {sign_up_request}')
+                error_message = error_data['error']['message']
+                app.root.ids['login_screen'].ids['login_message'].text = error_message
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
 
-            app.change_screen('home_screen')
 
-            # показываем текст ошибки в лэйбле, если данные введены неверно
-        if not sign_up_request.ok:
-            error_data = json.loads(sign_up_request.content.decode())
-            log.error(f'{error_data} {sign_up_request}')
-            error_message = error_data['error']['message']
-            app.root.ids['login_screen'].ids['login_message'].text = error_message
 
     def login(self, email, password):
         app = App.get_running_app()
@@ -84,10 +84,14 @@ class MyBase:
             idToken = login['idToken']  # authToken
             with open('refresh_token.txt', 'w') as f:
                 f.write(refresh_token)
-            app.local_id = constants.LOCAL_ID = localId  # uid
-            app.id_token = constants.ID_TOKEN = idToken
-            event_calendar.events_filling(sort=None)
-
+            constants.LOCAL_ID = localId  # uid
+            constants.ID_TOKEN = idToken
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            # result = future_one.result()
+            log.debug(f'Get app projects data from the server {result}')
+            data = json.loads(result.content.decode())
+            event_calendar.events_filling(sort=None, data=data)
             app.change_screen('home_screen')
         except Exception as ex:
             try:
@@ -96,17 +100,40 @@ class MyBase:
             except Exception as exc:
                 error_dict = ex
                 app.root.ids['login_screen'].ids['login_message'].text = 'Please heck your internet connection!'
-                log.error(json.loads(exc.args[1]))
+                log.error(ex)
             log.error(error_dict)
 
 
     def exchange_refresh_token(self, refresh_token):
+        app = App.get_running_app()
         refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
         refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}" % refresh_token
-        refresh_req = requests.post(refresh_url, data=refresh_payload)
+        try:
+            refresh_req = requests.post(refresh_url, data=refresh_payload)
 
-        local_id = refresh_req.json()['user_id']
-        id_token = refresh_req.json()['id_token']
-        log.debug('Got user_id and id_token')
-        return id_token, local_id
+            local_id = refresh_req.json()['user_id']
+            id_token = refresh_req.json()['id_token']
+            log.debug('Got user_id and id_token')
+            return id_token, local_id
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
 
+
+    def create_user(self, idToken, my_data, localId):
+        app = App.get_running_app()
+        try:
+            post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
+                                          + idToken, data=my_data)
+            log.debug(f'Sending data to database {post_request}')
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            log.debug(f'Get app projects data from the server {result}')
+            data = json.loads(result.content.decode())
+
+            event_calendar.events_filling(sort=None, data=data)
+
+            app.change_screen('home_screen')
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)

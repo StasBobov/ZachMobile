@@ -50,13 +50,13 @@ def save_new_purchase(text):
         app.change_screen("shopping_list_screen")
 
 
-def shopping_list_filling():
+def shopping_list_filling(data):
     app = App.get_running_app()
-    # TODO здесь нужно будет добавить подгрузку с файла
-    result = requests.get(
-        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-    log.debug(f'Get app task data from the server {result}')
-    data = json.loads(result.content.decode())
+    # # TODO здесь нужно будет добавить подгрузку с файла
+    # result = requests.get(
+    #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+    # log.debug(f'Get app task data from the server {result}')
+    # data = json.loads(result.content.decode())
 
     shopping_list_layout = app.root.ids['shopping_list_screen'].ids['shopping_layout']
     # Проверка на наличие заданий
