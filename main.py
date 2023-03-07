@@ -144,22 +144,8 @@ class MainApp(MDApp):
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
             self.lock = 0
-            # заполняем всю херню
-            try:
-                result = requests.get(
-                        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-                log.debug(f'Get app projects data from the server {result}')
-                data = json.loads(result.content.decode())
+            self.first_fill()
 
-                settings.user_settings_fill(data=data)
-                event_calendar.events_filling(data=data, sort=None)
-                shopping_list.shopping_list_filling(data=data)
-                tasks.tasks_filling(sort=tasks.Task.task_sort, data=data)
-                notes.fill_notes_screen(data=data)
-                projects.fill_projects_screen(data=data)
-            except Exception as exc:
-                self.error_modal_screen(text_error="Please check your internet connection!)")
-                log.error(exc)
             # Если нет, то остаёмся на экране логина
         except Exception:
             log.error('Not all functions not all features enabled on start')
@@ -191,6 +177,7 @@ class MainApp(MDApp):
         but_restart.bind(on_press=try_again)
         popup.open()
 
+    # Разблокирует home and settings, когда залогинился
     def unlock_header(self, command):
         if self.lock:
             pass
@@ -199,6 +186,24 @@ class MainApp(MDApp):
                 self.change_screen('home_screen')
             elif command == 'settings':
                 self.change_screen('settings_screen')
+
+    def first_fill(self):
+        # заполняем всю херню
+        try:
+            result = requests.get(
+                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            log.debug(f'Get app projects data from the server {result}')
+            data = json.loads(result.content.decode())
+
+            settings.user_settings_fill(data=data)
+            event_calendar.events_filling(data=data, sort=None)
+            shopping_list.shopping_list_filling(data=data)
+            tasks.tasks_filling(sort=tasks.Task.task_sort, data=data)
+            notes.fill_notes_screen(data=data)
+            projects.fill_projects_screen(data=data)
+        except Exception as exc:
+            self.error_modal_screen(text_error="Please check your internet connection!)")
+            log.error(exc)
 
 
     # ___________________________________Time picker________________________________________________________________________

@@ -1,12 +1,10 @@
 import json
 from functools import partial
 import logging
-
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-
 from own_classes import ImageButton
 import requests
 from kivy.app import App

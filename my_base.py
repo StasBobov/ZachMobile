@@ -67,6 +67,7 @@ class MyBase:
                 refresh_token = sign_up_data['refreshToken']
                 localId = sign_up_data['localId']
                 idToken = sign_up_data['idToken'] # authToken
+                app.lock = 0
                 with open('refresh_token.txt', 'w') as f:
                     f.write(refresh_token)
 
@@ -100,12 +101,7 @@ class MyBase:
             constants.LOCAL_ID = localId  # uid
             constants.ID_TOKEN = idToken
             app.lock = 0
-            result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            # result = future_one.result()
-            log.debug(f'Get app projects data from the server {result}')
-            data = json.loads(result.content.decode())
-            event_calendar.events_filling(sort=None, data=data)
+            app.first_fill()
             app.change_screen('home_screen')
         except Exception as ex:
             try:
@@ -143,6 +139,7 @@ class MyBase:
         try:
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
+
             log.debug(f'Sending data to database {post_request}')
             result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
