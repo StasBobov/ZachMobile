@@ -4,13 +4,20 @@ import logging
 import requests
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
+from functools import partial
+import pytz
+from kivy.factory import Factory
 
 import constants
 import my_base
 from kivy.app import App
+
+from own_classes import LabelButton
 
 log = logging.getLogger('settings_loger')
 log.setLevel(logging.DEBUG)
@@ -63,6 +70,7 @@ def user_settings_fill(data):
     app.root.ids['settings_screen'].ids['user_lname'].text = data['user_lname']
     app.root.ids['settings_screen'].ids['user_email'].text = data['user_email']
     app.root.ids['settings_screen'].ids['user_telephone'].text = data['user_telephone']
+    app.root.ids['settings_screen'].ids['timezone'].text = data['timezone']
 
 
 def user_settings_refill():
@@ -130,3 +138,32 @@ def modal_settings_window(command):
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)
     popup.open()
+
+
+def popup_func():
+    popup = Factory.SettingsPopup()
+    # fill the GridLayout
+    grid = popup.ids.container1
+    time_zones = pytz.all_timezones
+    for zone in time_zones:
+        grid.add_widget(Factory.MyButton(text=zone, on_press=add_timezone))
+
+    popup.open()
+
+
+def add_timezone(butt):
+    try:
+        log.info('Patch data on server')
+        move_project_request = requests.patch(
+            'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+            % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'timezone': butt.text}))
+        log.info(move_project_request)
+        user_settings_refill()
+    except Exception as exc:
+        app = App.get_running_app()
+        app.error_modal_screen(text_error="Please check your internet connection!")
+        log.error(exc)
+        return
+
+
+
