@@ -213,7 +213,8 @@ class MainApp(MDApp):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Orange"
         # можно поставить время по дефолту
-        default_time = datetime.datetime.strptime("4:20:00", '%H:%M:%S').time()
+        # default_time = datetime.datetime.strptime("4:20:00", '%H:%M:%S').time()
+        default_time = datetime.datetime.now().time()
         time_dialog.set_time(default_time)
         time_dialog.bind(on_cancel=self.time_on_cancel, time=self.get_time)
         time_dialog.open()

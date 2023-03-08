@@ -71,6 +71,9 @@ def user_settings_fill(data):
     app.root.ids['settings_screen'].ids['user_email'].text = data['user_email']
     app.root.ids['settings_screen'].ids['user_telephone'].text = data['user_telephone']
     app.root.ids['settings_screen'].ids['timezone'].text = data['timezone']
+    app.root.ids['settings_screen'].ids['sms_reminder'].active = data['sms_remind']
+    app.root.ids['settings_screen'].ids['email_reminder'].active = data['email_remind']
+
 
 
 def user_settings_refill():
@@ -154,10 +157,10 @@ def popup_func():
 def add_timezone(butt):
     try:
         log.info('Patch data on server')
-        move_project_request = requests.patch(
+        set_timezone_request = requests.patch(
             'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
             % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'timezone': butt.text}))
-        log.info(move_project_request)
+        log.info(set_timezone_request)
         user_settings_refill()
     except Exception as exc:
         app = App.get_running_app()
@@ -165,5 +168,34 @@ def add_timezone(butt):
         log.error(exc)
         return
 
+
+def set_email_reminder(value):
+    try:
+        log.info('Patch data on server')
+        value_request = requests.patch(
+            'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+            % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'email_remind': value}))
+        log.info(value_request)
+        user_settings_refill()
+    except Exception as exc:
+        app = App.get_running_app()
+        app.error_modal_screen(text_error="Please check your internet connection!")
+        log.error(exc)
+        return
+
+
+def set_sms_reminder(value):
+    try:
+        log.info('Patch data on server')
+        value_request = requests.patch(
+            'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+            % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'sms_remind': value}))
+        log.info(value_request)
+        user_settings_refill()
+    except Exception as exc:
+        app = App.get_running_app()
+        app.error_modal_screen(text_error="Please check your internet connection!")
+        log.error(exc)
+        return
 
 

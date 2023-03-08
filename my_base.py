@@ -73,11 +73,12 @@ class MyBase:
 
                 constants.LOCAL_ID = localId # uid
                 constants.ID_TOKEN = idToken
-                data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email}
+                data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email,
+                        'sms_remind': False, 'email_remind': False}
 
                 my_data = json.dumps(data)
                 self.create_user(my_data=my_data, idToken=idToken, localId=localId)
-
+    
                 # показываем текст ошибки в лэйбле, если данные введены неверно
             if not sign_up_request.ok:
                 error_data = json.loads(sign_up_request.content.decode())

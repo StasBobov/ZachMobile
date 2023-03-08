@@ -155,16 +155,22 @@
             Label:
                 text: "SMS reminder"
             CheckBox:
+                id: sms_reminder
+                name: 'sms_reminder'
+                active: True
                 on_active:
-                    print(self.active)
+                    settings.set_sms_reminder(self.active)
             Label:
                 text: "Some text"
 
             Label:
                 text: "email reminder"
             CheckBox:
+                id: email_reminder
+                name: 'email_reminder'
+                active: True
                 on_active:
-                    print(self.active)
+                    settings.set_email_reminder(self.active)
             Label:
                 text: "Some text"
 
