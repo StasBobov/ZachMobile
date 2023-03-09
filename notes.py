@@ -137,7 +137,7 @@ def transfer_to_project(menu, text):
     bl2.add_widget(but_cancel)
     bl.add_widget(sw)
     bl.add_widget(bl2)
-    popup = Popup(title="Transfer_to_project", content=bl, size_hint=(0.4, 0.6), pos_hint={"x": 0.2, "top": 0.9},
+    popup = Popup(title="Transfer to project", content=bl, size_hint=(0.4, 0.6), pos_hint={"x": 0.2, "top": 0.9},
                   auto_dismiss=False)
 
     # усли не будешь менять статус

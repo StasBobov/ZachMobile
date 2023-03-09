@@ -13,6 +13,7 @@ from functools import partial
 import pytz
 from kivy.factory import Factory
 
+
 import constants
 import my_base
 from kivy.app import App
@@ -75,7 +76,6 @@ def user_settings_fill(data):
     app.root.ids['settings_screen'].ids['email_reminder'].active = data['email_remind']
 
 
-
 def user_settings_refill():
     app = App.get_running_app()
     try:
@@ -98,18 +98,25 @@ def modal_settings_window(command):
     if command == 'user_name':
         hint_text = 'name'
         lavel_text = 'Please enter your name'
-        title_text = 'Filling in the name field'
+        title_text = 'Filling in the name'
+    elif command == 'telephone':
+        hint_text = 'Including country code (+000000000000)'
+        lavel_text = 'Please enter your correct telephone number'
+        title_text = 'Filling in the telephone number'
     else:
         hint_text = 'last name'
         lavel_text = 'Please enter your last name'
-        title_text = 'Filling in the last name field'
+        title_text = 'Filling in the last name'
+
 
     # Создаём модальное окно
     bl = BoxLayout(orientation='vertical')
     l = Label(text=lavel_text, font_size=12)
     t_i = TextInput(multiline=False, hint_text=hint_text)
+    l2 = Label(text='', font_size=12)
     bl.add_widget(l)
     bl.add_widget(t_i)
+    bl.add_widget(l2)
     bl2 = BoxLayout(orientation='horizontal')
     but_no = Button(text='Cancel!', font_size=12, size_hint=(.3, .5))
     but_yes = Button(text='Save', font_size=12, size_hint=(.3, .5))
@@ -123,20 +130,37 @@ def modal_settings_window(command):
     def no(*args):
         popup.dismiss()
 
-    # чтобы перенести в выполненные/удалить
     def yes(*args):
-        popup.dismiss()
-        try:
-            log.info('Patch data on server')
-            move_project_request = requests.patch(
-                'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
-                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
-            log.info(move_project_request)
-            user_settings_refill()
-        except Exception as exc:
-            app.error_modal_screen(text_error="Please check your internet connection!")
-            log.error(exc)
-            return
+
+        if command == 'telephone':
+            if len(t_i.text) == 13 and t_i.text[0] == '+' and t_i.text[1:].isdigit():
+                popup.dismiss()
+                try:
+                    log.info('Patch data on server')
+                    move_project_request = requests.patch(
+                        'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+                        % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
+                    log.info(move_project_request)
+                    user_settings_refill()
+                except Exception as exc:
+                    app.error_modal_screen(text_error="Please check your internet connection!")
+                    log.error(exc)
+                    return
+            else:
+                l2.text = 'You entered an invalid phone number'
+        else:
+            popup.dismiss()
+            try:
+                log.info('Patch data on server')
+                move_project_request = requests.patch(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+                    % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
+                log.info(move_project_request)
+                user_settings_refill()
+            except Exception as exc:
+                app.error_modal_screen(text_error="Please check your internet connection!")
+                log.error(exc)
+                return
 
     but_no.bind(on_press=no)
     but_yes.bind(on_press=yes)

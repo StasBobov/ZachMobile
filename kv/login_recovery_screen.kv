@@ -37,17 +37,5 @@
             pos_hint: {'top': .2, 'left': .8}
             on_release:
                 settings.reset_password(login_email.text)
-        LabelButton:
-            canvas.before:
-                Color:
-                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
-            text: '[u]No access to email[/u]'
-            markup: True
-            size_hint: .3, .1
-            pos_hint: {'top': .2, 'right': .8}
-            on_release:
-                pass
+
 

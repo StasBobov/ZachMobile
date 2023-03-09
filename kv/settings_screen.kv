@@ -88,8 +88,8 @@
                 id: user_name
                 name: "user_name"
                 text: ""
-            ImageButton:
-                source: "icons/edit.png"
+            LabelButton:
+                text: 'Edit your name Button'
                 on_release:
                     settings.modal_settings_window(command='user_name')
             Label:
@@ -98,8 +98,8 @@
                 id: user_lname
                 name: "user_lname"
                 text: ""
-            ImageButton:
-                source: "icons/edit.png"
+            LabelButton:
+                text: 'Edit your last name Button'
                 on_release:
                     settings.modal_settings_window(command='user_lname')
             Label:
@@ -108,10 +108,8 @@
                 id: user_email
                 name: "user_email"
                 text: ""
-            ImageButton:
-                source: "icons/edit.png"
-                on_release:
-                    print("Setting_1")
+            Label:
+                text: "Your current email"
 
             Label:
                 text: "Telephone"
@@ -119,13 +117,17 @@
                 id: user_telephone
                 name: "user_telephone"
                 text: ""
-            ImageButton:
-                source: "icons/edit.png"
+            LabelButton:
+                text: 'Edit your last telephone number Button'
                 on_release:
-                    print("Setting_1")
+                    settings.modal_settings_window(command='telephone')
 
         Label:
             text: "Privacy & Notices"
+            size_hint: 1, .1
+            pos_hint: {"top": 1, "left": 1}
+        Label:
+            text: "Attention! You will be able to receive reminders only if you correctly fill in the timezone, email and phone number fields"
             size_hint: 1, .1
             pos_hint: {"top": 1, "left": 1}
         GridLayout:
@@ -139,7 +141,7 @@
                 on_release:
                     settings.reset_password(login_email.text)
             Label:
-                text: "Some text"
+                text: "You will receive a link to change your password to your email address."
 
             Label:
                 text: "Time Zone"
@@ -147,8 +149,8 @@
                 id: timezone
                 name: "timezone"
                 text: ""
-            ImageButton:
-                source: "icons/edit.png"
+            LabelButton:
+                text: "Chose your timezone Button"
                 on_release:
                     settings.popup_func()
 
@@ -161,7 +163,7 @@
                 on_active:
                     settings.set_sms_reminder(self.active)
             Label:
-                text: "Some text"
+                text: "Zach will send event reminders to your phone number"
 
             Label:
                 text: "email reminder"
@@ -172,7 +174,7 @@
                 on_active:
                     settings.set_email_reminder(self.active)
             Label:
-                text: "Some text"
+                text: "Zach will send event reminders to your email"
 
 
 
