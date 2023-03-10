@@ -65,7 +65,6 @@ def modal_change_password_window(name, label):
 
 def user_settings_fill(data):
     app = App.get_running_app()
-
     # Заполняем данные пользователя
     app.root.ids['settings_screen'].ids['user_name'].text = data['user_name']
     app.root.ids['settings_screen'].ids['user_lname'].text = data['user_lname']

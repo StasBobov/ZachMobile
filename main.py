@@ -33,7 +33,8 @@ log.addHandler(fh)
 # TODO
 
 # Цонину: note_screen, settings, login, refresh_login
-
+# Кнопка я не получил имейл
+# в first_fill добавить обработку если рефреш токен не открылся
 # почему постоянно зависает?
 # что делать с журналами логов
 # notes / transfer project не прокручивается скролл - сделать как в settings
@@ -123,12 +124,12 @@ class MainApp(MDApp):
     lock = 1
     previous_screen = 'home_screen'
 
-    def restart_app(self):
+    def verification_restart_app(self):
         print('restart')
         self.root.clear_widgets()
         self.stop()
         MainApp().run()
-        print('Start')
+
 
 
     def build(self):
@@ -139,24 +140,71 @@ class MainApp(MDApp):
 
     def on_start(self):
         log.info('Start App')
-        # При старте пытаемся открыть файл с токеном
+        # Пытаемся найти файл с верификацией (для повторных входов)
         try:
-            with open('refresh_token.txt', 'r') as f:
-                refresh_token = f.read()
-            log.info('refresh_token was read')
-            # Если получается, то сразу грузим данные
-            constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
-            # и переходим на Home screen
-            self.root.ids['screen_manager'].transition = NoTransition()
-            self.change_screen('home_screen')
-            self.root.ids['screen_manager'].transition = CardTransition()
-            self.lock = 0
-            self.first_fill()
+            with open('verification.txt', 'r') as v:
+                verification = v.read()
+                self.my_base.exchange_refresh_token()
+                result = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+                self.first_fill(result=result)
+                # При старте пытаемся открыть файл с токеном
+            # try:
+                # with open('refresh_token.txt', 'r') as f:
+                #     refresh_token = f.read()
+                # log.info('refresh_token was read')
+                # # Если получается, то сразу грузим данные
+                # constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
+                # # и переходим на Home screen
+                # self.root.ids['screen_manager'].transition = NoTransition()
+                # self.change_screen('home_screen')
+                # self.root.ids['screen_manager'].transition = CardTransition()
+                # self.lock = 0
+                # self.first_fill()
+                # Если нет, то остаёмся на экране логина
+            # except Exception:
+            #     log.error('Not all functions not all features enabled on start')
+            #     print('Not Ok')
+            #     return
+        # Если не находим, то возвращаемся на экран верификации
+        except Exception as exc:
+            log.error(exc)
+            self.my_base.exchange_refresh_token()
+            try:
+                result = requests.get(
+                    'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+                # Если не даёт доступ к БД, пусть активирует имейл
+                if result.status_code == 401:
+                    self.change_screen('verification_screen')
+                elif json.loads(result.content.decode()) is None:
+                    data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": "",
+                            'sms_remind': False, 'email_remind': False, 'timezone': ''}
+                    self.lock = 0
+                    self.my_data = json.dumps(data)
+                    self.my_base.create_user(my_data=self.my_data, idToken=constants.ID_TOKEN, localId=constants.LOCAL_ID)
+                    self.first_fill(result=result)
+                    with open('verification.txt', 'w') as f:
+                        f.write('Verification : True')
+                else:
+                    self.first_fill(result=result)
+                    with open('verification.txt', 'w') as f:
+                        f.write('Verification : True')
+            except Exception as exc:
+                # self.error_modal_screen(text_error="Please check your internet connection!)")
+                log.error(exc)
 
-            # Если нет, то остаёмся на экране логина
-        except Exception:
-            log.error('Not all functions not all features enabled on start')
-            print('Not Ok')
+    # def get_ids(self):
+    #     try:
+    #         with open('refresh_token.txt', 'r') as f:
+    #             refresh_token = f.read()
+    #         log.info('refresh_token was read')
+    #         # Если получается, то сразу грузим данные
+    #         constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
+    #     # если не нашёл refresh токен, то кидает на login_screen
+    #     except Exception as exc:
+    #         self.change_screen('login_screen')
+    #         log.error(exc)
+
 
     def change_screen(self, screen_name):
 
@@ -194,17 +242,18 @@ class MainApp(MDApp):
             elif command == 'settings':
                 self.change_screen('settings_screen')
 
-    def try_again(self):
-        self.root.clear_widgets()
-        self.stop()
-        MainApp().run()
 
-    def first_fill(self):
+    def first_fill(self, result):
         # заполняем всю херню
         try:
-            result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            log.debug(f'Get first data from the server {result}')
+            # и переходим на Home screen
+            self.root.ids['screen_manager'].transition = NoTransition()
+            self.change_screen('home_screen')
+            self.root.ids['screen_manager'].transition = CardTransition()
+            self.lock = 0
+            # result = requests.get(
+            #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            # log.debug(f'Get first data from the server {result}')
             data = json.loads(result.content.decode())
             settings.user_settings_fill(data=data)
             event_calendar.events_filling(data=data, sort=None)
@@ -213,7 +262,7 @@ class MainApp(MDApp):
             notes.fill_notes_screen(data=data)
             projects.fill_projects_screen(data=data)
         except Exception as exc:
-            self.error_modal_screen(text_error="Please check your internet connection!)")
+            # self.error_modal_screen(text_error="Please check your internet connection!)")
             log.error(exc)
 
     # ___________________________________Time picker________________________________________________________________________

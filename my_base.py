@@ -55,6 +55,7 @@ class MyBase:
 
     # При нажатии на кнопку Sign up
     def sign_up(self, email, password):
+        self.email = email
         log.info('Try to sing up')
         app = App.get_running_app()
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + self.wak
@@ -84,10 +85,8 @@ class MyBase:
 
                 with open('refresh_token.txt', 'w') as f:
                     f.write(refresh_token)
+                    app.change_screen('verification_screen')
                     # TODO меняем экран и ждём
-
-                # это с кнопки enter
-                app.restart_app()
 
                 # TODO дальше шрузится по новой с рефреш токеном
 
@@ -134,26 +133,27 @@ class MyBase:
                 log.error(ex)
             log.error(error_dict)
 
-    def exchange_refresh_token(self, refresh_token):
+    def exchange_refresh_token(self):
         app = App.get_running_app()
-        refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
-        refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}" % refresh_token
         try:
-
+            with open('refresh_token.txt', 'r') as f:
+                refresh_token = f.read()
+            log.info('refresh_token was read')
+            refresh_url = 'https://securetoken.googleapis.com/v1/token?key=' + self.wak
+            refresh_payload = "{'grant_type': 'refresh_token', 'refresh_token': '%s'}" % refresh_token
             refresh_req = requests.post(refresh_url, data=refresh_payload)
 
-            local_id = refresh_req.json()['user_id']
+            constants.LOCAL_ID = refresh_req.json()['user_id']
 
-            id_token = refresh_req.json()['id_token']
+            constants.ID_TOKEN = refresh_req.json()['id_token']
             log.debug('Got user_id and id_token')
-            return id_token, local_id
         except Exception as exc:
+            app.change_screen('login_screen')
             if type(exc) == requests.exceptions.ConnectionError:
                 app.error_modal_screen(text_error="Please check your internet connection!")
             else:
                 app.root.ids['login_screen'].ids[
-                    'login_message'].text = 'There is something wrong with auto-authorization, \n ' \
-                                            'try logging in with your email and password'
+                    'login_message'].text = 'Please enter your email and password'
             log.error(exc)
 
     def create_user(self, idToken, my_data, localId):
@@ -162,14 +162,14 @@ class MyBase:
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
             log.debug(f'Sending data to database {post_request}')
-            if post_request.status_code == 401:
-                return
-            result = requests.get(
-                'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            log.debug(f'Get app projects data from the server {result}')
-            data = json.loads(result.content.decode())
-
-            event_calendar.events_filling(sort=None, data=data)
+            # if post_request.status_code == 401:
+            #     return
+            # result = requests.get(
+            #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
+            # log.debug(f'Get app projects data from the server {result}')
+            # data = json.loads(result.content.decode())
+            #
+            # event_calendar.events_filling(sort=None, data=data)
 
             app.change_screen('home_screen')
         except Exception as exc:
