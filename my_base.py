@@ -1,9 +1,15 @@
 import os
-
+from firebase_admin import auth as adm_auth
 import requests
 import json
 from kivy.app import App
 import logging
+
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.button import Button
+from kivy.uix.label import Label
+from kivy.uix.popup import Popup
+
 import event_calendar
 import constants
 import pyrebase
@@ -15,19 +21,15 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 fh.setFormatter(formatter)
 log.addHandler(fh)
 
-
-
-
-
 firebaseConfig = {
-  "apiKey": "AIzaSyB1AH3rKpOY31O8IvhkIIi7rL0oB-o8bsE",
-  "authDomain": "zach-mobile.firebaseapp.com",
-  "databaseURL": "https://zach-mobile-default-rtdb.firebaseio.com",
-  "projectId": "zach-mobile",
-  "storageBucket": "zach-mobile.appspot.com",
-  "messagingSenderId": "1044564107596",
-  "appId": "1:1044564107596:web:42695e4d6711eb5d7b2fe9",
-  "measurementId": "G-2VEJTJQ2E0"
+    "apiKey": "AIzaSyB1AH3rKpOY31O8IvhkIIi7rL0oB-o8bsE",
+    "authDomain": "zach-mobile.firebaseapp.com",
+    "databaseURL": "https://zach-mobile-default-rtdb.firebaseio.com",
+    "projectId": "zach-mobile",
+    "storageBucket": "zach-mobile.appspot.com",
+    "messagingSenderId": "1044564107596",
+    "appId": "1:1044564107596:web:42695e4d6711eb5d7b2fe9",
+    "measurementId": "G-2VEJTJQ2E0"
 }
 
 firebase = pyrebase.initialize_app(firebaseConfig)
@@ -56,7 +58,9 @@ class MyBase:
         log.info('Try to sing up')
         app = App.get_running_app()
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + self.wak
+
         signup_payload = {"email": email, "password": password, "returnSecureToken": True}
+
         try:
             # Передаём в базу имейл и пассворд
             sign_up_request = requests.post(signup_url, data=signup_payload)
@@ -64,21 +68,37 @@ class MyBase:
             log.info(sign_up_request, sign_up_data)
 
             if sign_up_request.ok:
+                # Отправляем письмо с верификацией email
+                payload = json.dumps({
+                    "requestType": "VERIFY_EMAIL",
+                    "idToken": sign_up_data['idToken']
+                })
+                r = requests.post("https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode",
+                                  params={"key": self.wak},
+                                  data=payload)
+
+                # self.creating_user_data(sign_up_data, email)
                 refresh_token = sign_up_data['refreshToken']
-                localId = sign_up_data['localId']
-                idToken = sign_up_data['idToken'] # authToken
-                app.lock = 0
+                self.localId = sign_up_data['localId']
+                self.idToken = sign_up_data['idToken']  # authToken
+
                 with open('refresh_token.txt', 'w') as f:
                     f.write(refresh_token)
+                    # TODO меняем экран и ждём
 
-                constants.LOCAL_ID = localId # uid
-                constants.ID_TOKEN = idToken
-                data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email,
-                        'sms_remind': False, 'email_remind': False}
+                # это с кнопки enter
+                app.restart_app()
 
-                my_data = json.dumps(data)
-                self.create_user(my_data=my_data, idToken=idToken, localId=localId)
-    
+                # TODO дальше шрузится по новой с рефреш токеном
+
+                # constants.LOCAL_ID = self.localId  # uid
+                # constants.ID_TOKEN = self.idToken
+                # data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": email,
+                #         'sms_remind': False, 'email_remind': False, 'timezone': ''}
+                # app.lock = 0
+                # self.my_data = json.dumps(data)
+                # self.create_user(my_data=self.my_data, idToken=self.idToken, localId=self.localId)
+
                 # показываем текст ошибки в лэйбле, если данные введены неверно
             if not sign_up_request.ok:
                 error_data = json.loads(sign_up_request.content.decode())
@@ -131,8 +151,9 @@ class MyBase:
             if type(exc) == requests.exceptions.ConnectionError:
                 app.error_modal_screen(text_error="Please check your internet connection!")
             else:
-                app.root.ids['login_screen'].ids['login_message'].text = 'There is something wrong with auto-authorization, \n ' \
-                                                                         'try logging in with your email and password'
+                app.root.ids['login_screen'].ids[
+                    'login_message'].text = 'There is something wrong with auto-authorization, \n ' \
+                                            'try logging in with your email and password'
             log.error(exc)
 
     def create_user(self, idToken, my_data, localId):
@@ -140,8 +161,9 @@ class MyBase:
         try:
             post_request = requests.patch("https://zach-mobile-default-rtdb.firebaseio.com/" + localId + ".json?auth="
                                           + idToken, data=my_data)
-
             log.debug(f'Sending data to database {post_request}')
+            if post_request.status_code == 401:
+                return
             result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
             log.debug(f'Get app projects data from the server {result}')

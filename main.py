@@ -29,6 +29,7 @@ formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(messag
 fh.setFormatter(formatter)
 log.addHandler(fh)
 
+
 # TODO
 
 # Цонину: note_screen, settings, login, refresh_login
@@ -114,9 +115,21 @@ class LoginRecoveryScreen(Screen):
     pass
 
 
+class VerificationScreen(Screen):
+    pass
+
+
 class MainApp(MDApp):
     lock = 1
     previous_screen = 'home_screen'
+
+    def restart_app(self):
+        print('restart')
+        self.root.clear_widgets()
+        self.stop()
+        MainApp().run()
+        print('Start')
+
 
     def build(self):
         self.theme_cls.theme_style = 'Light'
@@ -146,6 +159,7 @@ class MainApp(MDApp):
             print('Not Ok')
 
     def change_screen(self, screen_name):
+
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
@@ -167,7 +181,6 @@ class MainApp(MDApp):
             self.stop()
             MainApp().run()
 
-
         but_restart.bind(on_press=try_again)
         popup.open()
 
@@ -181,14 +194,18 @@ class MainApp(MDApp):
             elif command == 'settings':
                 self.change_screen('settings_screen')
 
+    def try_again(self):
+        self.root.clear_widgets()
+        self.stop()
+        MainApp().run()
+
     def first_fill(self):
         # заполняем всю херню
         try:
             result = requests.get(
                 'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            log.debug(f'Get app projects data from the server {result}')
+            log.debug(f'Get first data from the server {result}')
             data = json.loads(result.content.decode())
-
             settings.user_settings_fill(data=data)
             event_calendar.events_filling(data=data, sort=None)
             shopping_list.shopping_list_filling(data=data)
@@ -198,7 +215,6 @@ class MainApp(MDApp):
         except Exception as exc:
             self.error_modal_screen(text_error="Please check your internet connection!)")
             log.error(exc)
-
 
     # ___________________________________Time picker________________________________________________________________________
 

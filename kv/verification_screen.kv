@@ -1,0 +1,42 @@
+<VerificationScreen>:
+    canvas:
+        Color:
+            rgb: utils.get_color_from_hex("#3983F2")
+        Rectangle:
+            size: self.size
+            pos: self.pos
+    FloatLayout:
+        Label:
+            canvas.before:
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: 'To complete your registration, please follow the link that was sent to your email.'
+            size_hint: .3, .1
+            pos_hint: {'top': .5, 'left': .5}
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: 'Enter'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'right': .5}
+            on_release:
+                pass
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: 'I did not get the mail!'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'right': .8}
+            on_release:
+                pass
