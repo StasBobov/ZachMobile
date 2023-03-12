@@ -1,24 +1,17 @@
 import json
 import logging
-
 import requests
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
-from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-from kivy.uix.scrollview import ScrollView
 from kivy.uix.textinput import TextInput
-from functools import partial
 import pytz
 from kivy.factory import Factory
-
-
 import constants
 import my_base
 from kivy.app import App
 
-from own_classes import LabelButton
 
 log = logging.getLogger('settings_loger')
 log.setLevel(logging.DEBUG)
@@ -39,7 +32,6 @@ def reset_password(email):
     except Exception as exc:
         try:
             error_dict = json.loads(exc.args[1])
-            # print(exc)
             app.root.ids['login_recovery_screen'].ids['login_message'].text = error_dict['error']['message']
         except Exception as ex:
             app.error_modal_screen(text_error="Please check your internet connection!")

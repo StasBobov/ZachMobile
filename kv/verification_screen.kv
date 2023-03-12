@@ -1,3 +1,6 @@
+#:import my_base my_base
+#:import constants constants
+
 <VerificationScreen>:
     canvas:
         Color:
@@ -13,7 +16,20 @@
                     pos: self.pos
             text: 'To complete your registration, please follow the link that was sent to your email.'
             size_hint: .3, .1
-            pos_hint: {'top': .5, 'left': .5}
+            pos_hint: {'top': .5, 'right': .5}
+        LabelButton:
+            canvas.before:
+                Color:
+                    rgb: utils.get_color_from_hex("#3983F2") if self.state == 'normal' else utils.get_color_from_hex("#3244AA")
+                Rectangle:
+                    size: self.size
+                    pos: self.pos
+            text: 'Back to the Login screen'
+            markup: True
+            size_hint: .3, .1
+            pos_hint: {'top': .2, 'left': 1}
+            on_release:
+                app.change_screen('login_screen')
         LabelButton:
             canvas.before:
                 Color:
@@ -24,7 +40,7 @@
             text: 'Enter'
             markup: True
             size_hint: .3, .1
-            pos_hint: {'top': .2, 'right': .5}
+            pos_hint: {'top': .2, 'right': .7}
             on_release:
                 app.verification_restart_app()
         LabelButton:
@@ -37,6 +53,8 @@
             text: 'I did not get the mail!'
             markup: True
             size_hint: .3, .1
-            pos_hint: {'top': .2, 'right': .8}
+            pos_hint: {'top': .2, 'right': 1}
             on_release:
-                pass
+                my_base.exchange_refresh_token()
+                my_base.verification_request(constants.ID_TOKEN)
+

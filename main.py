@@ -1,11 +1,8 @@
 import logging
-
-from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.popup import Popup
-
 from my_base import MyBase
 from kivymd.app import MDApp
 from kivymd.uix.pickers import MDTimePicker
@@ -21,6 +18,7 @@ import constants
 import datetime
 import requests
 import json
+import my_base as mb
 
 log = logging.getLogger('main_loger')
 log.setLevel(logging.DEBUG)
@@ -32,10 +30,12 @@ log.addHandler(fh)
 
 # TODO
 
+# не подгружает не имейл ни телефон
 # Цонину: note_screen, settings, login, refresh_login
 # Кнопка я не получил имейл
 # в first_fill добавить обработку если рефреш токен не открылся
 # почему постоянно зависает?
+# про тайм пикер не забыть
 # что делать с журналами логов
 # notes / transfer project не прокручивается скролл - сделать как в settings
 # Активна или не активна кнопка Back
@@ -130,8 +130,6 @@ class MainApp(MDApp):
         self.stop()
         MainApp().run()
 
-
-
     def build(self):
         self.theme_cls.theme_style = 'Light'
         self.theme_cls.primary_palette = 'BlueGray'
@@ -144,38 +142,23 @@ class MainApp(MDApp):
         try:
             with open('verification.txt', 'r') as v:
                 verification = v.read()
-                self.my_base.exchange_refresh_token()
+                mb.exchange_refresh_token()
+                # Делаем запрос для первого заполнения
                 result = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
                 self.first_fill(result=result)
-                # При старте пытаемся открыть файл с токеном
-            # try:
-                # with open('refresh_token.txt', 'r') as f:
-                #     refresh_token = f.read()
-                # log.info('refresh_token was read')
-                # # Если получается, то сразу грузим данные
-                # constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
-                # # и переходим на Home screen
-                # self.root.ids['screen_manager'].transition = NoTransition()
-                # self.change_screen('home_screen')
-                # self.root.ids['screen_manager'].transition = CardTransition()
-                # self.lock = 0
-                # self.first_fill()
-                # Если нет, то остаёмся на экране логина
-            # except Exception:
-            #     log.error('Not all functions not all features enabled on start')
-            #     print('Not Ok')
-            #     return
         # Если не находим, то возвращаемся на экран верификации
         except Exception as exc:
             log.error(exc)
-            self.my_base.exchange_refresh_token()
+            # Он исключения сам обрабатывает
+            mb.exchange_refresh_token()
             try:
                 result = requests.get(
                     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
                 # Если не даёт доступ к БД, пусть активирует имейл
                 if result.status_code == 401:
                     self.change_screen('verification_screen')
+                # если база пустая, то создаём её и файл, подтверждающий верификацию
                 elif json.loads(result.content.decode()) is None:
                     data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": "",
                             'sms_remind': False, 'email_remind': False, 'timezone': ''}
@@ -190,24 +173,9 @@ class MainApp(MDApp):
                     with open('verification.txt', 'w') as f:
                         f.write('Verification : True')
             except Exception as exc:
-                # self.error_modal_screen(text_error="Please check your internet connection!)")
                 log.error(exc)
 
-    # def get_ids(self):
-    #     try:
-    #         with open('refresh_token.txt', 'r') as f:
-    #             refresh_token = f.read()
-    #         log.info('refresh_token was read')
-    #         # Если получается, то сразу грузим данные
-    #         constants.ID_TOKEN, constants.LOCAL_ID = self.my_base.exchange_refresh_token(refresh_token)
-    #     # если не нашёл refresh токен, то кидает на login_screen
-    #     except Exception as exc:
-    #         self.change_screen('login_screen')
-    #         log.error(exc)
-
-
     def change_screen(self, screen_name):
-
         screen_manager = self.root.ids["screen_manager"]
         screen_manager.current = screen_name
 
@@ -242,7 +210,6 @@ class MainApp(MDApp):
             elif command == 'settings':
                 self.change_screen('settings_screen')
 
-
     def first_fill(self, result):
         # заполняем всю херню
         try:
@@ -251,9 +218,6 @@ class MainApp(MDApp):
             self.change_screen('home_screen')
             self.root.ids['screen_manager'].transition = CardTransition()
             self.lock = 0
-            # result = requests.get(
-            #     'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
-            # log.debug(f'Get first data from the server {result}')
             data = json.loads(result.content.decode())
             settings.user_settings_fill(data=data)
             event_calendar.events_filling(data=data, sort=None)
@@ -262,7 +226,6 @@ class MainApp(MDApp):
             notes.fill_notes_screen(data=data)
             projects.fill_projects_screen(data=data)
         except Exception as exc:
-            # self.error_modal_screen(text_error="Please check your internet connection!)")
             log.error(exc)
 
     # ___________________________________Time picker________________________________________________________________________
@@ -272,7 +235,6 @@ class MainApp(MDApp):
         self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Orange"
         # можно поставить время по дефолту
-        # default_time = datetime.datetime.strptime("4:20:00", '%H:%M:%S').time()
         default_time = datetime.datetime.now().time()
         time_dialog.set_time(default_time)
         time_dialog.bind(on_cancel=self.time_on_cancel, time=self.get_time)
