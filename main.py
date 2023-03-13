@@ -30,11 +30,9 @@ log.addHandler(fh)
 
 # TODO
 
-# не подгружает не имейл ни телефон
-# Цонину: note_screen, settings, login, refresh_login
-# Кнопка я не получил имейл
+#
+# поменять название на wait for verification
 # в first_fill добавить обработку если рефреш токен не открылся
-# почему постоянно зависает?
 # про тайм пикер не забыть
 # что делать с журналами логов
 # notes / transfer project не прокручивается скролл - сделать как в settings
@@ -160,11 +158,14 @@ class MainApp(MDApp):
                     self.change_screen('verification_screen')
                 # если база пустая, то создаём её и файл, подтверждающий верификацию
                 elif json.loads(result.content.decode()) is None:
-                    data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": "",
+                    # заполняем базу данных и выгружаем в приложение
+                    data = {"user_telephone": "", "user_name": "", "user_lname": "", "user_email": mb.user_email,
                             'sms_remind': False, 'email_remind': False, 'timezone': ''}
                     self.lock = 0
                     self.my_data = json.dumps(data)
                     self.my_base.create_user(my_data=self.my_data, idToken=constants.ID_TOKEN, localId=constants.LOCAL_ID)
+                    result = requests.get(
+                        'https://zach-mobile-default-rtdb.firebaseio.com/' + constants.LOCAL_ID + '.json?auth=' + constants.ID_TOKEN)
                     self.first_fill(result=result)
                     with open('verification.txt', 'w') as f:
                         f.write('Verification : True')

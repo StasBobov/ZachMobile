@@ -28,6 +28,8 @@ firebase = pyrebase.initialize_app(firebaseConfig)
 
 auth = firebase.auth()
 
+user_email = ''
+
 
 def logout():
     app = App.get_running_app()
@@ -81,7 +83,8 @@ class MyBase:
 
     # При нажатии на кнопку Sign up
     def sign_up(self, email, password):
-        self.email = email
+        global user_email
+        user_email = email
         log.info('Try to sing up')
         app = App.get_running_app()
         signup_url = "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + constants.WAK
@@ -116,6 +119,8 @@ class MyBase:
     # Вызывается с панели Login screen
     def login(self, email, password):
         app = App.get_running_app()
+        global user_email
+        user_email = email
         try:
             login = auth.sign_in_with_email_and_password(email, password)
             log.info('Successful login')

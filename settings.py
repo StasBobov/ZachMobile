@@ -26,8 +26,8 @@ def reset_password(email):
     app = App.get_running_app()
     try:
         my_base.auth.send_password_reset_email(email)
-        modal_change_password_window(name='Change the password',
-                                     label='A link to change your password has been sent to your email')
+        modal_label_window(name='Change the password',
+                           label='A link to change your password has been sent to your email')
         app.change_screen('login_screen')
     except Exception as exc:
         try:
@@ -38,7 +38,7 @@ def reset_password(email):
             log.error(ex)
 
 
-def modal_change_password_window(name, label):
+def modal_label_window(name, label):
     # Создаём модальное окно
     bl = BoxLayout(orientation='vertical')
     l = Label(text=label, font_size=12)
@@ -86,6 +86,14 @@ def user_settings_refill():
 
 def modal_settings_window(command):
     app = App.get_running_app()
+    user_settings_refill()
+    # если код ещё не отправлен
+    if command == 'verification' and app.root.ids['settings_screen'].ids['user_telephone'].text != 'Wait for SMS with ' \
+                                                                                                   'verification code':
+        modal_label_window(label='First you need to add your phone number in the appropriate field.',
+                           name="You haven't received a code yet.")
+        return
+
     if command == 'user_name':
         hint_text = 'name'
         lavel_text = 'Please enter your name'
@@ -94,6 +102,10 @@ def modal_settings_window(command):
         hint_text = 'Including country code (+000000000000)'
         lavel_text = 'Please enter your correct telephone number'
         title_text = 'Filling in the telephone number'
+    elif command == 'verification':
+        hint_text = 'XXXXXX'
+        lavel_text = 'Enter the six-digit verification code from SMS'
+        title_text = 'Verify phone number'
     else:
         hint_text = 'last name'
         lavel_text = 'Please enter your last name'
@@ -122,23 +134,28 @@ def modal_settings_window(command):
         popup.dismiss()
 
     def yes(*args):
-
         if command == 'telephone':
             if len(t_i.text) == 13 and t_i.text[0] == '+' and t_i.text[1:].isdigit():
+                send_support_req(data=t_i.text, command=command)
                 popup.dismiss()
-                try:
-                    log.info('Patch data on server')
-                    move_project_request = requests.patch(
-                        'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
-                        % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: t_i.text}))
-                    log.info(move_project_request)
-                    user_settings_refill()
-                except Exception as exc:
-                    app.error_modal_screen(text_error="Please check your internet connection!")
-                    log.error(exc)
-                    return
+                modal_label_window(label='The verification code will come to your phone within an hour, '
+                                         'after that you need to enter it in the appropriate field.',
+                                   name='Code coming soon.')
+                return
             else:
                 l2.text = 'You entered an invalid phone number'
+        elif command == 'verification':
+            if len(t_i.text) == 6 and t_i.text.isdigit():
+                send_support_req(data=t_i.text, command=command)
+                modal_label_window(label='Please wait for verification. This may take about an hour.',
+                                   name='The code has been sent for verification.')
+                popup.dismiss()
+                return
+            else:
+                l2.text = 'Your verification code is incorrect'
+
+
+
         else:
             popup.dismiss()
             try:
@@ -200,17 +217,66 @@ def set_email_reminder(value):
 
 
 def set_sms_reminder(value):
-    try:
-        log.info('Patch data on server')
-        value_request = requests.patch(
-            'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
-            % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'sms_remind': value}))
-        log.info(value_request)
+    app = App.get_running_app()
+    if value == True and app.root.ids['settings_screen'].ids['user_telephone'].text != '':
+        modal_label_window(label='First you need to add a phone number.', name='Phone number not found!')
         user_settings_refill()
-    except Exception as exc:
-        app = App.get_running_app()
-        app.error_modal_screen(text_error="Please check your internet connection!")
-        log.error(exc)
-        return
+
+    elif value == True and app.root.ids['settings_screen'].ids['user_telephone'].text != 'Wait for SMS with ' \
+                                                                                                   'verification code':
+        modal_label_window(label='First you need to add a phone number.', name='Phone number not found!')
+        user_settings_refill()
+
+    else:
+        try:
+            log.info('Patch data on server')
+            value_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'sms_remind': value}))
+            log.info(value_request)
+            user_settings_refill()
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
+            return
+
+
+
+
+
+def send_support_req(data, command):
+    app = App.get_running_app()
+    if command == 'telephone':
+        try:
+            # отправляем запрос на подтверждение номера телефона
+            log.info('Post data on server')
+            telephone_add_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/support_req.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: data}))
+            log.info(telephone_add_request)
+            log.info('Patch data on server')
+            # в поле с номером телефона пишем ждать
+            move_project_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({'user_telephone': 'Wait for SMS with verification code'}))
+            log.info(move_project_request)
+            user_settings_refill()
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
+    elif command == 'verification':
+        # если отправил код на верификацию
+        try:
+            log.info('Post data on server')
+            telephone_add_request = requests.patch(
+                'https://zach-mobile-default-rtdb.firebaseio.com/%s/support_req.json?auth=%s'
+                % (constants.LOCAL_ID, constants.ID_TOKEN), data=json.dumps({command: data}))
+            log.info(telephone_add_request)
+        except Exception as exc:
+            app.error_modal_screen(text_error="Please check your internet connection!")
+            log.error(exc)
+
+
+
 
 

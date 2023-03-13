@@ -117,10 +117,16 @@
                 id: user_telephone
                 name: "user_telephone"
                 text: ""
-            LabelButton:
-                text: 'Edit your last telephone number Button'
-                on_release:
-                    settings.modal_settings_window(command='telephone')
+            BoxLayout:
+                orientation: 'horizontal'
+                LabelButton:
+                    text: 'Edit your last telephone number Button'
+                    on_release:
+                        settings.modal_settings_window(command='telephone')
+                LabelButton:
+                    text: 'Enter verification code Button'
+                    on_release:
+                        settings.modal_settings_window(command='verification')
 
         Label:
             text: "Privacy & Notices"
